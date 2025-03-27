@@ -23,12 +23,12 @@ export default function DashboardPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-gray-500 text-sm font-medium">Total Products</h2>
-          <p className="text-2xl font-bold">{totalProducts}</p>
+          <h2 className="text-gray-600 text-sm font-medium">Total Products</h2>
+          <p className="text-2xl font-bold text-gray-900">{totalProducts}</p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-gray-500 text-sm font-medium">Inventory Value</h2>
-          <p className="text-2xl font-bold">${inventoryValue.toFixed(2)}</p>
+          <h2 className="text-gray-600 text-sm font-medium">Inventory Value</h2>
+          <p className="text-2xl font-bold text-gray-900">${inventoryValue.toFixed(2)}</p>
         </div>
       </div>
       
@@ -40,35 +40,35 @@ export default function DashboardPage() {
             href="/products"
             className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow text-center"
           >
-            <span className="text-xs">Products</span>
+            <span className="text-xs text-gray-800">Products</span>
           </Link>
           
           <Link
             href="/categories"
             className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow text-center"
           >
-            <span className="text-xs">Categories</span>
+            <span className="text-xs text-gray-800">Categories</span>
           </Link>
           
           <Link
             href="/deliveries"
             className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow text-center"
           >
-            <span className="text-xs">Deliveries</span>
+            <span className="text-xs text-gray-800">Deliveries</span>
           </Link>
           
           <Link
             href="/invoices"
             className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow text-center"
           >
-            <span className="text-xs">Invoices</span>
+            <span className="text-xs text-gray-800">Invoices</span>
           </Link>
           
           <Link
             href="/inventory"
             className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow text-center"
           >
-            <span className="text-xs">Inventory</span>
+            <span className="text-xs text-gray-800">Inventory</span>
           </Link>
         </div>
       </div>
@@ -79,30 +79,30 @@ export default function DashboardPage() {
         <div className="bg-white p-4 rounded-lg shadow space-y-4">
           {pendingDeliveries > 0 && (
             <div className="flex items-center">
-              <p className="text-sm">
-                <span className="font-medium">{pendingDeliveries}</span> pending deliveries
+              <p className="text-sm text-gray-800">
+                <span className="font-medium text-gray-900">{pendingDeliveries}</span> pending deliveries
               </p>
             </div>
           )}
           
           {pendingInvoices > 0 && (
             <div className="flex items-center">
-              <p className="text-sm">
-                <span className="font-medium">{pendingInvoices}</span> pending invoices
+              <p className="text-sm text-gray-800">
+                <span className="font-medium text-gray-900">{pendingInvoices}</span> pending invoices
               </p>
             </div>
           )}
           
           {overdueInvoices > 0 && (
             <div className="flex items-center">
-              <p className="text-sm">
-                <span className="font-medium">{overdueInvoices}</span> overdue invoices
+              <p className="text-sm text-gray-800">
+                <span className="font-medium text-gray-900">{overdueInvoices}</span> overdue invoices
               </p>
             </div>
           )}
           
           {pendingDeliveries === 0 && pendingInvoices === 0 && overdueInvoices === 0 && (
-            <p className="text-sm text-gray-500">No pending activities</p>
+            <p className="text-sm text-gray-700">No pending activities</p>
           )}
         </div>
       </div>
