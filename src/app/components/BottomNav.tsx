@@ -19,9 +19,9 @@ export default function BottomNav() {
         <span className="material-icons text-gray-900">receipt</span>
         <span className="text-xs font-medium text-gray-900">Invoices</span>
       </Link>
-      <Link href="/menu" className="flex w-full flex-col items-center py-1 active:bg-gray-100">
-        <span className="material-icons text-gray-900">menu</span>
-        <span className="text-xs font-medium text-gray-900">Menu</span>
+      <Link href="/stock" className="flex w-full flex-col items-center py-1 active:bg-gray-100">
+        <span className="material-icons text-gray-900">inventory</span>
+        <span className="text-xs font-medium text-gray-900">Stock</span>
       </Link>
     </nav>
   );

@@ -18,6 +18,15 @@ export interface Restaurant {
   cuisine: string;
 }
 
+// Define product interface with stock
+export interface Product {
+  id: number;
+  name: string;
+  category: string;
+  price: number;
+  stock: number;
+}
+
 // Define the invoice state interface
 interface InvoiceState {
   items: InvoiceItem[];
@@ -34,6 +43,8 @@ interface InvoiceContextType {
   setRestaurant: (restaurant: Restaurant) => void;
   totalItems: number;
   subtotal: number;
+  getProductStock: (productId: number) => number;
+  updateProductStock: (productId: number, newStock: number) => void;
 }
 
 // Create the context with default values
@@ -65,10 +76,47 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
     return { items: [], restaurant: null };
   });
 
+  // Track product stock
+  const [productStock, setProductStock] = useState<{[key: number]: number}>(() => {
+    if (typeof window !== 'undefined') {
+      const savedStock = localStorage.getItem('productStock');
+      if (savedStock) {
+        return JSON.parse(savedStock);
+      }
+    }
+    
+    // Load initial stock data - in a real app, this would come from an API
+    return {
+      1: 15, // Cinnamon
+      2: 8,  // Cardamom
+      3: 20, // Turmeric
+      4: 12, // Basil
+      5: 18, // Mint
+      6: 5,  // Rosemary
+      7: 10, // Vanilla Ice Cream
+      8: 14, // Chocolate Ice Cream
+      9: 7,  // Strawberry Ice Cream
+      10: 25, // Tomatoes
+      11: 30, // Carrots
+      12: 15, // Broccoli
+      13: 40, // Apples
+      14: 35, // Bananas
+      15: 22, // Oranges
+      16: 42, // Milk
+      17: 6,  // Cheese
+      18: 18, // Yogurt
+    };
+  });
+
   // Save invoice to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('invoice', JSON.stringify(invoice));
   }, [invoice]);
+
+  // Save product stock to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('productStock', JSON.stringify(productStock));
+  }, [productStock]);
 
   // Calculate total number of items in invoice
   const totalItems = invoice.items.reduce((total, item) => total + item.quantity, 0);
@@ -76,14 +124,42 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
   // Calculate subtotal
   const subtotal = invoice.items.reduce((total, item) => total + (item.price * item.quantity), 0);
 
+  // Get stock for a product
+  const getProductStock = (productId: number): number => {
+    return productStock[productId] || 0;
+  };
+
+  // Update stock for a product
+  const updateProductStock = (productId: number, newStock: number) => {
+    setProductStock(prev => ({
+      ...prev,
+      [productId]: Math.max(0, newStock) // Ensure stock doesn't go below 0
+    }));
+  };
+
   // Add an item to the invoice
   const addItem = (item: Omit<InvoiceItem, 'quantity'>) => {
+    // Check if we have stock available
+    const currentStock = getProductStock(item.id);
+    if (currentStock <= 0) {
+      alert(`Cannot add ${item.name} - Out of stock!`);
+      return;
+    }
+
     setInvoice(prevInvoice => {
       // Check if item already exists in invoice
       const existingItemIndex = prevInvoice.items.findIndex(invoiceItem => invoiceItem.id === item.id);
       
       if (existingItemIndex > -1) {
-        // If exists, increment quantity
+        // If exists, check if we can increment quantity
+        const currentQuantity = prevInvoice.items[existingItemIndex].quantity;
+        
+        if (currentQuantity >= currentStock) {
+          alert(`Cannot add more ${item.name} - Stock limit reached!`);
+          return prevInvoice;
+        }
+        
+        // If stock available, increment quantity
         const updatedItems = [...prevInvoice.items];
         updatedItems[existingItemIndex].quantity += 1;
         
@@ -114,6 +190,15 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
     if (quantity < 1) {
       // If quantity is less than 1, remove the item
       removeItem(itemId);
+      return;
+    }
+    
+    // Check stock when increasing quantity
+    const currentStock = getProductStock(itemId);
+    const currentItem = invoice.items.find(item => item.id === itemId);
+    
+    if (currentItem && quantity > currentItem.quantity && quantity > currentStock) {
+      alert(`Cannot set quantity to ${quantity} - Only ${currentStock} in stock!`);
       return;
     }
     
@@ -155,7 +240,9 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
       clearInvoice,
       setRestaurant,
       totalItems,
-      subtotal
+      subtotal,
+      getProductStock,
+      updateProductStock
     }}>
       {children}
     </InvoiceContext.Provider>
