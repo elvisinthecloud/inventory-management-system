@@ -86,7 +86,7 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
     }
     
     // Load initial stock data - in a real app, this would come from an API
-    return {
+    const initialStock = {
       1: 15, // Cinnamon
       2: 8,  // Cardamom
       3: 20, // Turmeric
@@ -106,6 +106,13 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
       17: 6,  // Cheese
       18: 18, // Yogurt
     };
+    
+    // If we're on the client, save this initial data to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('productStock', JSON.stringify(initialStock));
+    }
+    
+    return initialStock;
   });
 
   // Save invoice to localStorage whenever it changes

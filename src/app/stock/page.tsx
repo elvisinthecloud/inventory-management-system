@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Geist, Roboto_Mono } from "next/font/google";
 import Link from 'next/link';
+import { useInvoice } from '../context/InvoiceContext';
 
 const geistSans = Geist({
   weight: '400',
@@ -24,6 +25,9 @@ interface Product {
 }
 
 export default function StockManagementPage() {
+  // Get product stock from InvoiceContext
+  const { getProductStock, updateProductStock } = useInvoice();
+  
   // State for products
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,33 +42,39 @@ export default function StockManagementPage() {
   // Get unique categories
   const categories = [...new Set(products.map(product => product.category))];
   
-  // Load products from localStorage on component mount
+  // Load products on component mount
   useEffect(() => {
     // In a real app, this would come from an API call
     const loadProducts = () => {
       // Simulate API delay
       setTimeout(() => {
-        // For this example, we'll use hard-coded products similar to search pages
-        const stockProducts = [
-          { id: 1, name: 'Cinnamon', category: 'Spices', price: 3.99, stock: 15 },
-          { id: 2, name: 'Cardamom', category: 'Spices', price: 5.99, stock: 8 },
-          { id: 3, name: 'Turmeric', category: 'Spices', price: 2.99, stock: 20 },
-          { id: 4, name: 'Basil', category: 'Herbs', price: 2.49, stock: 12 },
-          { id: 5, name: 'Mint', category: 'Herbs', price: 1.99, stock: 18 },
-          { id: 6, name: 'Rosemary', category: 'Herbs', price: 2.29, stock: 5 },
-          { id: 7, name: 'Vanilla Ice Cream', category: 'Ice Cream', price: 4.99, stock: 10 },
-          { id: 8, name: 'Chocolate Ice Cream', category: 'Ice Cream', price: 4.99, stock: 14 },
-          { id: 9, name: 'Strawberry Ice Cream', category: 'Ice Cream', price: 5.49, stock: 7 },
-          { id: 10, name: 'Tomatoes', category: 'Vegetables', price: 2.99, stock: 25 },
-          { id: 11, name: 'Carrots', category: 'Vegetables', price: 1.49, stock: 30 },
-          { id: 12, name: 'Broccoli', category: 'Vegetables', price: 1.99, stock: 15 },
-          { id: 13, name: 'Apples', category: 'Fruits', price: 3.49, stock: 40 },
-          { id: 14, name: 'Bananas', category: 'Fruits', price: 1.29, stock: 35 },
-          { id: 15, name: 'Oranges', category: 'Fruits', price: 2.49, stock: 22 },
-          { id: 16, name: 'Milk', category: 'Dairy', price: 2.49, stock: 42 },
-          { id: 17, name: 'Cheese', category: 'Dairy', price: 3.99, stock: 6 },
-          { id: 18, name: 'Yogurt', category: 'Dairy', price: 1.99, stock: 18 },
+        // Define base product data but get stock levels from context
+        const baseProducts = [
+          { id: 1, name: 'Cinnamon', category: 'Spices', price: 3.99 },
+          { id: 2, name: 'Cardamom', category: 'Spices', price: 5.99 },
+          { id: 3, name: 'Turmeric', category: 'Spices', price: 2.99 },
+          { id: 4, name: 'Basil', category: 'Herbs', price: 2.49 },
+          { id: 5, name: 'Mint', category: 'Herbs', price: 1.99 },
+          { id: 6, name: 'Rosemary', category: 'Herbs', price: 2.29 },
+          { id: 7, name: 'Vanilla Ice Cream', category: 'Ice Cream', price: 4.99 },
+          { id: 8, name: 'Chocolate Ice Cream', category: 'Ice Cream', price: 4.99 },
+          { id: 9, name: 'Strawberry Ice Cream', category: 'Ice Cream', price: 5.49 },
+          { id: 10, name: 'Tomatoes', category: 'Vegetables', price: 2.99 },
+          { id: 11, name: 'Carrots', category: 'Vegetables', price: 1.49 },
+          { id: 12, name: 'Broccoli', category: 'Vegetables', price: 1.99 },
+          { id: 13, name: 'Apples', category: 'Fruits', price: 3.49 },
+          { id: 14, name: 'Bananas', category: 'Fruits', price: 1.29 },
+          { id: 15, name: 'Oranges', category: 'Fruits', price: 2.49 },
+          { id: 16, name: 'Milk', category: 'Dairy', price: 2.49 },
+          { id: 17, name: 'Cheese', category: 'Dairy', price: 3.99 },
+          { id: 18, name: 'Yogurt', category: 'Dairy', price: 1.99 },
         ];
+        
+        // Add stock from context to each product
+        const stockProducts = baseProducts.map(product => ({
+          ...product,
+          stock: getProductStock(product.id)
+        }));
         
         setProducts(stockProducts);
         setLoading(false);
@@ -72,7 +82,7 @@ export default function StockManagementPage() {
     };
     
     loadProducts();
-  }, []);
+  }, [getProductStock]);
   
   // Handle adjustment input changes
   const handleAdjustmentChange = (productId: number, value: string) => {
@@ -92,14 +102,22 @@ export default function StockManagementPage() {
       return;
     }
     
+    // Get current product
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+    
+    // Calculate new stock value
+    const newStock = isAdd 
+      ? product.stock + adjustment 
+      : Math.max(0, product.stock - adjustment);
+      
+    // Update stock in context
+    updateProductStock(productId, newStock);
+    
+    // Update local state to reflect changes
     setProducts(prevProducts => 
       prevProducts.map(product => {
         if (product.id === productId) {
-          // Ensure stock doesn't go below 0 for removals
-          const newStock = isAdd 
-            ? product.stock + adjustment 
-            : Math.max(0, product.stock - adjustment);
-            
           return {
             ...product,
             stock: newStock
@@ -115,8 +133,6 @@ export default function StockManagementPage() {
       [productId]: 0
     });
     
-    // In a real app, you would save this to your backend/localStorage
-    // For this demo, we'll just show it in the UI
     alert(`Stock ${isAdd ? 'added' : 'removed'} successfully!`);
   };
   

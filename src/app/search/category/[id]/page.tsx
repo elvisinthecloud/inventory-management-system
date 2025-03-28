@@ -1,8 +1,12 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import { Geist, Roboto_Mono } from "next/font/google";
 import SearchBar from '@/app/components/SearchBar';
 import Link from 'next/link';
 import ProductCard from '@/app/components/ProductCard';
+import { useInvoice } from '@/app/context/InvoiceContext';
+import { useParams, useSearchParams } from 'next/navigation';
 
 const geistSans = Geist({
   weight: '400',
@@ -14,40 +18,59 @@ const robotoMono = Roboto_Mono({
   subsets: ['latin'],
 });
 
-// Mock product data - in a real app, this would come from a database
-const allProducts = [
-  { id: 1, name: 'Cinnamon', category: 'Spices', categoryId: 1, price: 3.99, stock: 15 },
-  { id: 2, name: 'Cardamom', category: 'Spices', categoryId: 1, price: 5.99, stock: 8 },
-  { id: 3, name: 'Turmeric', category: 'Spices', categoryId: 1, price: 2.99, stock: 20 },
-  { id: 4, name: 'Basil', category: 'Herbs', categoryId: 2, price: 2.49, stock: 12 },
-  { id: 5, name: 'Mint', category: 'Herbs', categoryId: 2, price: 1.99, stock: 18 },
-  { id: 6, name: 'Rosemary', category: 'Herbs', categoryId: 2, price: 2.29, stock: 5 },
-  { id: 7, name: 'Vanilla Ice Cream', category: 'Ice Cream', categoryId: 3, price: 4.99, stock: 10 },
-  { id: 8, name: 'Chocolate Ice Cream', category: 'Ice Cream', categoryId: 3, price: 4.99, stock: 14 },
-  { id: 9, name: 'Strawberry Ice Cream', category: 'Ice Cream', categoryId: 3, price: 5.49, stock: 7 },
-  { id: 10, name: 'Tomatoes', category: 'Vegetables', categoryId: 4, price: 2.99, stock: 25 },
-  { id: 11, name: 'Carrots', category: 'Vegetables', categoryId: 4, price: 1.49, stock: 30 },
-  { id: 12, name: 'Broccoli', category: 'Vegetables', categoryId: 4, price: 1.99, stock: 15 },
-  { id: 13, name: 'Apples', category: 'Fruits', categoryId: 5, price: 3.49, stock: 40 },
-  { id: 14, name: 'Bananas', category: 'Fruits', categoryId: 5, price: 1.29, stock: 35 },
-  { id: 15, name: 'Oranges', category: 'Fruits', categoryId: 5, price: 2.49, stock: 22 },
-  { id: 16, name: 'Milk', category: 'Dairy', categoryId: 6, price: 2.49, stock: 42 },
-  { id: 17, name: 'Cheese', category: 'Dairy', categoryId: 6, price: 3.99, stock: 6 },
-  { id: 18, name: 'Yogurt', category: 'Dairy', categoryId: 6, price: 1.99, stock: 18 },
+// Define the product interface
+interface Product {
+  id: number;
+  name: string;
+  category: string;
+  categoryId: number;
+  price: number;
+  stock: number;
+}
+
+// Base product data without stock
+const baseProducts = [
+  { id: 1, name: 'Cinnamon', category: 'Spices', categoryId: 1, price: 3.99 },
+  { id: 2, name: 'Cardamom', category: 'Spices', categoryId: 1, price: 5.99 },
+  { id: 3, name: 'Turmeric', category: 'Spices', categoryId: 1, price: 2.99 },
+  { id: 4, name: 'Basil', category: 'Herbs', categoryId: 2, price: 2.49 },
+  { id: 5, name: 'Mint', category: 'Herbs', categoryId: 2, price: 1.99 },
+  { id: 6, name: 'Rosemary', category: 'Herbs', categoryId: 2, price: 2.29 },
+  { id: 7, name: 'Vanilla Ice Cream', category: 'Ice Cream', categoryId: 3, price: 4.99 },
+  { id: 8, name: 'Chocolate Ice Cream', category: 'Ice Cream', categoryId: 3, price: 4.99 },
+  { id: 9, name: 'Strawberry Ice Cream', category: 'Ice Cream', categoryId: 3, price: 5.49 },
+  { id: 10, name: 'Tomatoes', category: 'Vegetables', categoryId: 4, price: 2.99 },
+  { id: 11, name: 'Carrots', category: 'Vegetables', categoryId: 4, price: 1.49 },
+  { id: 12, name: 'Broccoli', category: 'Vegetables', categoryId: 4, price: 1.99 },
+  { id: 13, name: 'Apples', category: 'Fruits', categoryId: 5, price: 3.49 },
+  { id: 14, name: 'Bananas', category: 'Fruits', categoryId: 5, price: 1.29 },
+  { id: 15, name: 'Oranges', category: 'Fruits', categoryId: 5, price: 2.49 },
+  { id: 16, name: 'Milk', category: 'Dairy', categoryId: 6, price: 2.49 },
+  { id: 17, name: 'Cheese', category: 'Dairy', categoryId: 6, price: 3.99 },
+  { id: 18, name: 'Yogurt', category: 'Dairy', categoryId: 6, price: 1.99 },
 ];
 
-export default function CategoryPage({
-  params,
-  searchParams,
-}: {
-  params: { id: string };
-  searchParams?: { name?: string }
-}) {
-  const categoryId = parseInt(params.id);
-  const categoryName = searchParams?.name || 'Category';
+export default function CategoryPage() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const categoryId = parseInt(params.id as string);
+  const categoryName = searchParams?.get('name') || 'Category';
+  const { getProductStock } = useInvoice();
+  const [products, setProducts] = useState<Product[]>([]);
+  
+  // Load product data with current stock levels
+  useEffect(() => {
+    // Add stock from context to each product
+    const productsWithStock = baseProducts.map(product => ({
+      ...product,
+      stock: getProductStock(product.id)
+    }));
+    
+    setProducts(productsWithStock);
+  }, [getProductStock]);
   
   // Filter products by category ID
-  const categoryProducts = allProducts.filter(
+  const categoryProducts = products.filter(
     product => product.categoryId === categoryId
   );
   
@@ -68,22 +91,18 @@ export default function CategoryPage({
       </div>
       
       {/* Products Grid */}
-      <div className="mt-8">
-        <h2 className={`${geistSans.className} mb-6 text-2xl font-semibold text-gray-800`}>
-          {categoryProducts.length} Products Available
-        </h2>
-        
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
-          {categoryProducts.map(product => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-        
-        {categoryProducts.length === 0 && (
+      <div className="mt-6">
+        {categoryProducts.length > 0 ? (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+            {categoryProducts.map(product => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
           <div className="rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm">
             <p className="text-lg text-gray-600">No products found in this category</p>
             <Link href="/search" className="mt-6 inline-block rounded-md bg-blue-500 px-5 py-2 text-white hover:bg-blue-600">
-              Back to all categories
+              Back to categories
             </Link>
           </div>
         )}
