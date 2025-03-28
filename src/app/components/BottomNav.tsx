@@ -2,22 +2,26 @@ import Link from 'next/link';
 
 export default function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white shadow-md flex justify-around items-center h-16">
-      <Link href="/dashboard" className="flex flex-col items-center">
-        <span className="material-icons text-black">dashboard</span>
-        <span className="text-xs text-black">Dashboard</span>
+    <nav className="fixed bottom-0 left-0 right-0 z-30 flex h-16 items-center justify-around bg-white shadow-lg">
+      <Link href="/dashboard" className="flex w-full flex-col items-center py-1 active:bg-gray-100">
+        <span className="material-icons text-gray-900">dashboard</span>
+        <span className="text-xs font-medium text-gray-900">Dashboard</span>
       </Link>
-      <Link href="/search" className="flex flex-col items-center">
-        <span className="material-icons text-black">search</span>
-        <span className="text-xs text-black">Search</span>
+      <Link href="/search" className="flex w-full flex-col items-center py-1 active:bg-gray-100">
+        <span className="material-icons text-gray-900">search</span>
+        <span className="text-xs font-medium text-gray-900">Search</span>
       </Link>
-      <Link href="/invoices" className="flex flex-col items-center">
-        <span className="material-icons text-black">receipt</span>
-        <span className="text-xs text-black">Invoices</span>
+      <Link href="/restaurants" className="flex w-full flex-col items-center py-1 active:bg-gray-100">
+        <span className="material-icons text-gray-900">restaurant</span>
+        <span className="text-xs font-medium text-gray-900">Restaurants</span>
       </Link>
-      <Link href="/menu" className="flex flex-col items-center">
-        <span className="material-icons text-black">menu</span>
-        <span className="text-xs text-black">Menu</span>
+      <Link href="/invoices" className="flex w-full flex-col items-center py-1 active:bg-gray-100">
+        <span className="material-icons text-gray-900">receipt</span>
+        <span className="text-xs font-medium text-gray-900">Invoices</span>
+      </Link>
+      <Link href="/menu" className="flex w-full flex-col items-center py-1 active:bg-gray-100">
+        <span className="material-icons text-gray-900">menu</span>
+        <span className="text-xs font-medium text-gray-900">Menu</span>
       </Link>
     </nav>
   );
