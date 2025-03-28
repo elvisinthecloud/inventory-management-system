@@ -27,6 +27,28 @@ export interface Product {
   stock: number;
 }
 
+// Initial default stock data
+const defaultStockData = {
+  1: 15, // Cinnamon
+  2: 8,  // Cardamom
+  3: 20, // Turmeric
+  4: 12, // Basil
+  5: 18, // Mint
+  6: 5,  // Rosemary
+  7: 10, // Vanilla Ice Cream
+  8: 14, // Chocolate Ice Cream
+  9: 7,  // Strawberry Ice Cream
+  10: 25, // Tomatoes
+  11: 30, // Carrots
+  12: 15, // Broccoli
+  13: 40, // Apples
+  14: 35, // Bananas
+  15: 22, // Oranges
+  16: 42, // Milk
+  17: 6,  // Cheese
+  18: 18, // Yogurt
+};
+
 // Define the invoice state interface
 interface InvoiceState {
   items: InvoiceItem[];
@@ -66,64 +88,44 @@ interface InvoiceProviderProps {
 
 // Invoice provider component
 export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
-  // Initialize state from localStorage on the client side
-  const [invoice, setInvoice] = useState<InvoiceState>(() => {
-    // Check if window is defined (client side)
-    if (typeof window !== 'undefined') {
-      const savedInvoice = localStorage.getItem('invoice');
-      return savedInvoice ? JSON.parse(savedInvoice) : { items: [], restaurant: null };
-    }
-    return { items: [], restaurant: null };
-  });
-
-  // Track product stock
-  const [productStock, setProductStock] = useState<{[key: number]: number}>(() => {
-    if (typeof window !== 'undefined') {
-      const savedStock = localStorage.getItem('productStock');
-      if (savedStock) {
-        return JSON.parse(savedStock);
-      }
-    }
-    
-    // Load initial stock data - in a real app, this would come from an API
-    const initialStock = {
-      1: 15, // Cinnamon
-      2: 8,  // Cardamom
-      3: 20, // Turmeric
-      4: 12, // Basil
-      5: 18, // Mint
-      6: 5,  // Rosemary
-      7: 10, // Vanilla Ice Cream
-      8: 14, // Chocolate Ice Cream
-      9: 7,  // Strawberry Ice Cream
-      10: 25, // Tomatoes
-      11: 30, // Carrots
-      12: 15, // Broccoli
-      13: 40, // Apples
-      14: 35, // Bananas
-      15: 22, // Oranges
-      16: 42, // Milk
-      17: 6,  // Cheese
-      18: 18, // Yogurt
-    };
-    
-    // If we're on the client, save this initial data to localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('productStock', JSON.stringify(initialStock));
-    }
-    
-    return initialStock;
-  });
-
-  // Save invoice to localStorage whenever it changes
+  // Initialize with empty values to prevent hydration mismatch
+  const [invoice, setInvoice] = useState<InvoiceState>({ items: [], restaurant: null });
+  const [productStock, setProductStock] = useState<{[key: number]: number}>(defaultStockData);
+  const [isClient, setIsClient] = useState(false);
+  
+  // After component mounts (client-side only), initialize from localStorage
   useEffect(() => {
-    localStorage.setItem('invoice', JSON.stringify(invoice));
-  }, [invoice]);
+    setIsClient(true);
+    
+    // Get saved invoice from localStorage
+    const savedInvoice = localStorage.getItem('invoice');
+    if (savedInvoice) {
+      setInvoice(JSON.parse(savedInvoice));
+    }
+    
+    // Get saved stock data from localStorage
+    const savedStock = localStorage.getItem('productStock');
+    if (savedStock) {
+      setProductStock(JSON.parse(savedStock));
+    } else {
+      // If no saved stock, save the default stock data
+      localStorage.setItem('productStock', JSON.stringify(defaultStockData));
+    }
+  }, []);
 
-  // Save product stock to localStorage whenever it changes
+  // Save invoice to localStorage whenever it changes (but only on client)
   useEffect(() => {
-    localStorage.setItem('productStock', JSON.stringify(productStock));
-  }, [productStock]);
+    if (isClient) {
+      localStorage.setItem('invoice', JSON.stringify(invoice));
+    }
+  }, [invoice, isClient]);
+
+  // Save product stock to localStorage whenever it changes (but only on client)
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem('productStock', JSON.stringify(productStock));
+    }
+  }, [productStock, isClient]);
 
   // Calculate total number of items in invoice
   const totalItems = invoice.items.reduce((total, item) => total + item.quantity, 0);
