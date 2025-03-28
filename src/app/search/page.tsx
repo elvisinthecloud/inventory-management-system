@@ -1,10 +1,15 @@
 import React from 'react';
-import { Geist } from "next/font/google";
+import { Geist, Roboto_Mono } from "next/font/google";
 import SearchBar from '@/app/components/SearchBar';
 import CategoryGrid from '@/app/components/CategoryGrid';
 
 const geistSans = Geist({
   weight: '400',
+  subsets: ['latin'],
+});
+
+const robotoMono = Roboto_Mono({
+  weight: '700',
   subsets: ['latin'],
 });
 
@@ -21,16 +26,16 @@ export default function SearchPage() {
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-6">
-      <h1 className={`${geistSans.className} mb-8 text-3xl font-bold text-gray-900`}>Search Products</h1>
-      
       {/* Search Bar - made wider */}
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-4xl mb-12">
         <SearchBar placeholder="Search for products..." />
       </div>
       
       {/* Categories Section */}
-      <div className="mt-10">
-        <h2 className={`${geistSans.className} mb-6 text-2xl font-semibold text-gray-800`}>Categories</h2>
+      <div className="mt-4">
+        <h2 className={`${robotoMono.className} mb-8 border-b-4 border-blue-500 pb-2 text-3xl uppercase tracking-wider text-gray-800`}>
+          CATEGORIES
+        </h2>
         <CategoryGrid categories={categories} />
       </div>
     </div>

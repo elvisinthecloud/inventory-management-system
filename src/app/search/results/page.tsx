@@ -1,10 +1,15 @@
 import React from 'react';
-import { Geist } from "next/font/google";
+import { Geist, Roboto_Mono } from "next/font/google";
 import SearchBar from '@/app/components/SearchBar';
 import Link from 'next/link';
 
 const geistSans = Geist({
   weight: '400',
+  subsets: ['latin'],
+});
+
+const robotoMono = Roboto_Mono({
+  weight: '700',
   subsets: ['latin'],
 });
 
@@ -39,7 +44,9 @@ export default function SearchResults({
   
   return (
     <div className="container mx-auto max-w-6xl px-4 py-6">
-      <h1 className={`${geistSans.className} mb-8 text-3xl font-bold text-gray-900`}>Search Results</h1>
+      <h1 className={`${robotoMono.className} mb-8 border-b-4 border-blue-500 pb-2 text-3xl uppercase tracking-wider text-gray-800`}>
+        SEARCH RESULTS
+      </h1>
       
       {/* Search Bar */}
       <div className="mx-auto max-w-4xl mb-6">

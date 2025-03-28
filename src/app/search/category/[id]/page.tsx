@@ -1,10 +1,15 @@
 import React from 'react';
-import { Geist } from "next/font/google";
+import { Geist, Roboto_Mono } from "next/font/google";
 import SearchBar from '@/app/components/SearchBar';
 import Link from 'next/link';
 
 const geistSans = Geist({
   weight: '400',
+  subsets: ['latin'],
+});
+
+const robotoMono = Roboto_Mono({
+  weight: '700',
   subsets: ['latin'],
 });
 
@@ -51,7 +56,9 @@ export default function CategoryPage({
         <Link href="/search" className="mr-4 flex items-center text-blue-600 hover:text-blue-800 transition-colors">
           <span className="text-xl">←</span> <span className="ml-1">Back</span>
         </Link>
-        <h1 className={`${geistSans.className} text-3xl font-bold text-gray-900`}>{categoryName}</h1>
+        <h1 className={`${robotoMono.className} border-b-4 border-blue-500 pb-2 text-3xl uppercase tracking-wider text-gray-800`}>
+          {categoryName.toUpperCase()}
+        </h1>
       </div>
       
       {/* Search Bar */}
