@@ -61,12 +61,25 @@ export default function CategoryPage() {
   // Load product data with current stock levels
   useEffect(() => {
     // Add stock from context to each product
-    const productsWithStock = baseProducts.map(product => ({
-      ...product,
-      stock: getProductStock(product.id)
-    }));
+    const productsJson = localStorage.getItem('products');
+    let productsToUse;
     
-    setProducts(productsWithStock);
+    if (productsJson) {
+      // If products exist in localStorage, use them
+      const savedProducts = JSON.parse(productsJson);
+      productsToUse = savedProducts.map((product: any) => ({
+        ...product,
+        stock: getProductStock(product.id)
+      }));
+    } else {
+      // Otherwise, use the default product data
+      productsToUse = baseProducts.map(product => ({
+        ...product,
+        stock: getProductStock(product.id)
+      }));
+    }
+    
+    setProducts(productsToUse);
   }, [getProductStock]);
   
   // Filter products by category ID

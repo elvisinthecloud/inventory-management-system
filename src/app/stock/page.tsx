@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Geist, Roboto_Mono } from "next/font/google";
 import Link from 'next/link';
 import { useInvoice } from '../context/InvoiceContext';
+import AddProductModal from '../components/AddProductModal';
 
 const geistSans = Geist({
   weight: '400',
@@ -39,44 +40,63 @@ export default function StockManagementPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   
+  // Add product modal state
+  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+  
   // Get unique categories
   const categories = [...new Set(products.map(product => product.category))];
   
   // Load products on component mount
   useEffect(() => {
-    // In a real app, this would come from an API call
     const loadProducts = () => {
-      // Simulate API delay
       setTimeout(() => {
-        // Define base product data but get stock levels from context
-        const baseProducts = [
-          { id: 1, name: 'Cinnamon', category: 'Spices', price: 3.99 },
-          { id: 2, name: 'Cardamom', category: 'Spices', price: 5.99 },
-          { id: 3, name: 'Turmeric', category: 'Spices', price: 2.99 },
-          { id: 4, name: 'Basil', category: 'Herbs', price: 2.49 },
-          { id: 5, name: 'Mint', category: 'Herbs', price: 1.99 },
-          { id: 6, name: 'Rosemary', category: 'Herbs', price: 2.29 },
-          { id: 7, name: 'Vanilla Ice Cream', category: 'Ice Cream', price: 4.99 },
-          { id: 8, name: 'Chocolate Ice Cream', category: 'Ice Cream', price: 4.99 },
-          { id: 9, name: 'Strawberry Ice Cream', category: 'Ice Cream', price: 5.49 },
-          { id: 10, name: 'Tomatoes', category: 'Vegetables', price: 2.99 },
-          { id: 11, name: 'Carrots', category: 'Vegetables', price: 1.49 },
-          { id: 12, name: 'Broccoli', category: 'Vegetables', price: 1.99 },
-          { id: 13, name: 'Apples', category: 'Fruits', price: 3.49 },
-          { id: 14, name: 'Bananas', category: 'Fruits', price: 1.29 },
-          { id: 15, name: 'Oranges', category: 'Fruits', price: 2.49 },
-          { id: 16, name: 'Milk', category: 'Dairy', price: 2.49 },
-          { id: 17, name: 'Cheese', category: 'Dairy', price: 3.99 },
-          { id: 18, name: 'Yogurt', category: 'Dairy', price: 1.99 },
-        ];
+        // Try to get products from localStorage
+        const productsJson = localStorage.getItem('products');
         
-        // Add stock from context to each product
-        const stockProducts = baseProducts.map(product => ({
-          ...product,
-          stock: getProductStock(product.id)
-        }));
+        if (productsJson) {
+          // If products exist in localStorage, use them
+          const savedProducts = JSON.parse(productsJson);
+          // Update stock values from context
+          const productsWithUpdatedStock = savedProducts.map((product: Product) => ({
+            ...product,
+            stock: getProductStock(product.id)
+          }));
+          setProducts(productsWithUpdatedStock);
+        } else {
+          // Otherwise, use our default products
+          const baseProducts = [
+            { id: 1, name: 'Cinnamon', category: 'Spices', price: 3.99 },
+            { id: 2, name: 'Cardamom', category: 'Spices', price: 5.99 },
+            { id: 3, name: 'Turmeric', category: 'Spices', price: 2.99 },
+            { id: 4, name: 'Basil', category: 'Herbs', price: 2.49 },
+            { id: 5, name: 'Mint', category: 'Herbs', price: 1.99 },
+            { id: 6, name: 'Rosemary', category: 'Herbs', price: 2.29 },
+            { id: 7, name: 'Vanilla Ice Cream', category: 'Ice Cream', price: 4.99 },
+            { id: 8, name: 'Chocolate Ice Cream', category: 'Ice Cream', price: 4.99 },
+            { id: 9, name: 'Strawberry Ice Cream', category: 'Ice Cream', price: 5.49 },
+            { id: 10, name: 'Tomatoes', category: 'Vegetables', price: 2.99 },
+            { id: 11, name: 'Carrots', category: 'Vegetables', price: 1.49 },
+            { id: 12, name: 'Broccoli', category: 'Vegetables', price: 1.99 },
+            { id: 13, name: 'Apples', category: 'Fruits', price: 3.49 },
+            { id: 14, name: 'Bananas', category: 'Fruits', price: 1.29 },
+            { id: 15, name: 'Oranges', category: 'Fruits', price: 2.49 },
+            { id: 16, name: 'Milk', category: 'Dairy', price: 2.49 },
+            { id: 17, name: 'Cheese', category: 'Dairy', price: 3.99 },
+            { id: 18, name: 'Yogurt', category: 'Dairy', price: 1.99 },
+          ];
+          
+          // Add stock from context to each product
+          const stockProducts = baseProducts.map(product => ({
+            ...product,
+            stock: getProductStock(product.id)
+          }));
+          
+          // Save to localStorage for future use
+          localStorage.setItem('products', JSON.stringify(baseProducts));
+          
+          setProducts(stockProducts);
+        }
         
-        setProducts(stockProducts);
         setLoading(false);
       }, 500);
     };
@@ -161,6 +181,19 @@ export default function StockManagementPage() {
         <h1 className={`${robotoMono.className} border-b-4 border-blue-500 pb-2 text-3xl uppercase tracking-wider text-gray-800`}>
           STOCK MANAGEMENT
         </h1>
+      </div>
+      
+      {/* Top Action Bar */}
+      <div className="mb-6 flex justify-between items-center">
+        <button
+          onClick={() => setIsAddProductModalOpen(true)}
+          className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Add New Product
+        </button>
       </div>
       
       {/* Search and Filter Controls */}
@@ -265,6 +298,13 @@ export default function StockManagementPage() {
           </tbody>
         </table>
       </div>
+      
+      {/* Add Product Modal */}
+      <AddProductModal 
+        isOpen={isAddProductModalOpen}
+        onClose={() => setIsAddProductModalOpen(false)}
+        existingCategories={categories}
+      />
     </div>
   );
 } 
