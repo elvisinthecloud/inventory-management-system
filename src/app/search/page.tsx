@@ -20,15 +20,17 @@ export default function SearchPage() {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <h1 className={`${geistSans.className} text-2xl font-bold mb-6`}>Search Products</h1>
+    <div className="container mx-auto max-w-6xl px-4 py-6">
+      <h1 className={`${geistSans.className} mb-8 text-3xl font-bold text-gray-900`}>Search Products</h1>
       
-      {/* Search Bar */}
-      <SearchBar placeholder="Search for products..." />
+      {/* Search Bar - made wider */}
+      <div className="mx-auto max-w-4xl">
+        <SearchBar placeholder="Search for products..." />
+      </div>
       
       {/* Categories Section */}
-      <div className="mt-8">
-        <h2 className={`${geistSans.className} text-xl font-semibold mb-4`}>Categories</h2>
+      <div className="mt-10">
+        <h2 className={`${geistSans.className} mb-6 text-2xl font-semibold text-gray-800`}>Categories</h2>
         <CategoryGrid categories={categories} />
       </div>
     </div>

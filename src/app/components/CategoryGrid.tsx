@@ -30,12 +30,12 @@ export default function CategoryGrid({ categories }: CategoryGridProps) {
           onClick={() => handleCategoryClick(category.id, category.name)}
         >
           <div className="relative h-32 w-full">
-            <div className="flex h-full w-full items-center justify-center bg-gray-200">
-              <span className="text-lg font-bold text-gray-700">{category.name}</span>
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-50 to-blue-200">
+              <span className="text-lg font-bold text-gray-800">{category.name}</span>
             </div>
           </div>
           <div className="p-4">
-            <h3 className="text-center font-medium">{category.name}</h3>
+            <h3 className="text-center font-medium text-gray-900">{category.name}</h3>
           </div>
         </div>
       ))}
