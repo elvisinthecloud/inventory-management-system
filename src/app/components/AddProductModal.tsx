@@ -9,6 +9,25 @@ interface AddProductModalProps {
   existingCategories: string[];
 }
 
+interface Product {
+  id: number;
+  name: string;
+  category: string;
+  categoryId?: number;
+  price: number;
+  stock: number;
+}
+
+// Define a more explicit mapping of default category names to IDs
+const DEFAULT_CATEGORY_MAP: {[key: string]: number} = {
+  'Spices': 1,
+  'Herbs': 2,
+  'Ice Cream': 3,
+  'Vegetables': 4,
+  'Fruits': 5,
+  'Dairy': 6
+};
+
 export default function AddProductModal({ isOpen, onClose, existingCategories }: AddProductModalProps) {
   const { updateProductStock } = useInvoice();
   
@@ -71,6 +90,56 @@ export default function AddProductModal({ isOpen, onClose, existingCategories }:
     
     const newProductId = maxId + 1;
     
+    // Determine category ID for new or existing category
+    let categoryId: number;
+    
+    if (isAddingNewCategory) {
+      // For a new category, find the highest category ID and increment
+      const productsJson = localStorage.getItem('products');
+      const products = productsJson ? JSON.parse(productsJson) : [];
+      
+      // Get all existing categoryIds
+      const existingCategoryIds = products
+        .filter((p: Product) => p.categoryId !== undefined)
+        .map((p: Product) => p.categoryId);
+      
+      // Find the max category ID or default to existing categories count
+      const maxCategoryId = existingCategoryIds.length > 0
+        ? Math.max(...existingCategoryIds)
+        : Object.keys(DEFAULT_CATEGORY_MAP).length;
+      
+      // New category gets a new ID
+      categoryId = maxCategoryId + 1;
+    } else {
+      // For existing category, find the category ID from the products
+      const productsJson = localStorage.getItem('products');
+      const products = productsJson ? JSON.parse(productsJson) : [];
+      
+      // First check if it's one of our default categories
+      if (DEFAULT_CATEGORY_MAP[category] !== undefined) {
+        categoryId = DEFAULT_CATEGORY_MAP[category];
+      } else {
+        // If not a default category, look for it in existing products
+        const matchingProduct = products.find((p: Product) => p.category === category);
+        
+        // If found, use that categoryId, otherwise generate a new one
+        if (matchingProduct && matchingProduct.categoryId) {
+          categoryId = matchingProduct.categoryId;
+        } else {
+          // Get the highest categoryId and increment
+          const existingCategoryIds = products
+            .filter((p: Product) => p.categoryId !== undefined)
+            .map((p: Product) => p.categoryId);
+          
+          const maxCategoryId = existingCategoryIds.length > 0
+            ? Math.max(...existingCategoryIds)
+            : Object.keys(DEFAULT_CATEGORY_MAP).length;
+          
+          categoryId = maxCategoryId + 1;
+        }
+      }
+    }
+    
     // Create new product in localStorage
     // First update the stock value through our context
     updateProductStock(newProductId, stockValue);
@@ -84,6 +153,7 @@ export default function AddProductModal({ isOpen, onClose, existingCategories }:
       id: newProductId,
       name: name.trim(),
       category: finalCategory.trim(),
+      categoryId: categoryId,
       price: priceValue,
       stock: stockValue
     };

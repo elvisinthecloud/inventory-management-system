@@ -83,9 +83,20 @@ export default function CategoryPage() {
   }, [getProductStock]);
   
   // Filter products by category ID
-  const categoryProducts = products.filter(
-    product => product.categoryId === categoryId
-  );
+  const categoryProducts = products.filter(product => {
+    // First try to match by categoryId (most reliable)
+    if (product.categoryId === categoryId) {
+      return true;
+    }
+    
+    // Fallback: If for some reason categoryId is missing or doesn't match,
+    // check if the category name matches what we're looking for
+    if (!product.categoryId && product.category === categoryName) {
+      return true;
+    }
+    
+    return false;
+  });
   
   return (
     <div className="container mx-auto max-w-6xl px-4 py-6">
