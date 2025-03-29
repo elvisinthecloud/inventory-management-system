@@ -178,11 +178,11 @@ export default function StockManagementPage() {
     return matchesSearch && matchesCategory;
   });
   
-  // Helper for stock status color
-  const getStockStatusColor = (stock: number) => {
-    if (stock <= 5) return 'text-red-600';
-    if (stock <= 10) return 'text-amber-600';
-    return 'text-green-600';
+  // Update the getStockStatusColor function to return both text and background colors
+  const getStockStatusClass = (stock: number) => {
+    if (stock <= 5) return { text: 'text-red-600', bg: 'bg-red-600' };
+    if (stock <= 10) return { text: 'text-amber-600', bg: 'bg-amber-600' };
+    return { text: 'text-green-600', bg: 'bg-green-600' };
   };
 
   // Calculate inventory statistics
@@ -366,8 +366,8 @@ export default function StockManagementPage() {
                   </td>
                   <td className="px-4 sm:px-6 py-4">
                     <div className="flex items-center">
-                      <div className={`h-2.5 w-2.5 rounded-full ${getStockStatusColor(product.stock).replace('text-', 'bg-')} mr-2`}></div>
-                      <div className={`text-lg font-bold ${getStockStatusColor(product.stock)}`}>
+                      <div className={`h-2.5 w-2.5 rounded-full ${getStockStatusClass(product.stock).bg} mr-2`}></div>
+                      <div className={`text-lg font-bold ${getStockStatusClass(product.stock).text}`}>
                         {product.stock}
                       </div>
                     </div>
