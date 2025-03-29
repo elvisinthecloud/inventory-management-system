@@ -5,6 +5,7 @@ import { Geist, Roboto_Mono } from "next/font/google";
 import SearchBar from '@/app/components/SearchBar';
 import CategoryGrid from '@/app/components/CategoryGrid';
 import { useInvoice } from '@/app/context/InvoiceContext';
+import PageHeader from '@/app/components/PageHeader';
 
 const geistSans = Geist({
   weight: '400',
@@ -185,9 +186,7 @@ export default function SearchPage() {
       
       {/* Categories Section */}
       <div className="mt-4">
-        <h2 className={`${robotoMono.className} mb-8 border-b-4 border-blue-500 pb-2 text-3xl uppercase tracking-wider text-gray-800`}>
-          CATEGORIES
-        </h2>
+        <PageHeader title="CATEGORIES" />
         <CategoryGrid categories={categories} />
       </div>
     </div>

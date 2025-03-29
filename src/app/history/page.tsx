@@ -4,6 +4,7 @@ import React from 'react';
 import { useInvoice } from '../context/InvoiceContext';
 import { Roboto_Mono } from "next/font/google";
 import Link from 'next/link';
+import PageHeader from '@/app/components/PageHeader';
 
 const robotoMono = Roboto_Mono({
   weight: '700',
@@ -81,18 +82,18 @@ export default function HistoryPage() {
 
   return (
     <div className="container mx-auto max-w-4xl px-4 pb-20 pt-6">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className={`${robotoMono.className} border-b-4 border-blue-500 pb-2 text-3xl uppercase tracking-wider text-gray-900`}>
-          Invoice History
-        </h1>
-        <Link 
-          href="/restaurants" 
-          className="flex items-center text-blue-600 hover:text-blue-800"
-        >
-          <span className="material-icons mr-1">add</span>
-          <span>New Invoice</span>
-        </Link>
-      </div>
+      <PageHeader 
+        title="INVOICE HISTORY" 
+        withAction={
+          <Link 
+            href="/restaurants" 
+            className="flex items-center text-cyan-300 hover:text-cyan-200 font-semibold transition-colors duration-150"
+          >
+            <span className="material-icons mr-1">add</span>
+            <span>New Invoice</span>
+          </Link>
+        }
+      />
 
       {invoiceHistory.length === 0 ? (
         <div className="my-12 rounded-lg border border-gray-300 bg-white p-8 text-center shadow-md">

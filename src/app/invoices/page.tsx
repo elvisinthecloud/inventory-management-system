@@ -5,6 +5,7 @@ import { useInvoice } from '../context/InvoiceContext';
 import { Roboto_Mono } from "next/font/google";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import PageHeader from '@/app/components/PageHeader';
 
 const robotoMono = Roboto_Mono({
   weight: '700',
@@ -32,9 +33,7 @@ export default function InvoicesPage() {
 
   return (
     <div className="container mx-auto max-w-4xl px-4 pb-20 pt-6">
-      <h1 className={`${robotoMono.className} mb-6 border-b-4 border-blue-500 pb-2 text-3xl uppercase tracking-wider text-gray-900`}>
-        Current Invoice
-      </h1>
+      <PageHeader title="CURRENT INVOICE" />
 
       {!invoice.restaurant ? (
         <div className="my-12 rounded-lg border border-gray-300 bg-white p-8 text-center shadow-md">
