@@ -84,14 +84,15 @@ export default function CategoryPage() {
   
   // Filter products by category ID
   const categoryProducts = products.filter(product => {
+    console.log('Filtering product:', product.name, 'Category ID:', product.categoryId, 'Looking for:', categoryId);
+    
     // First try to match by categoryId (most reliable)
     if (product.categoryId === categoryId) {
       return true;
     }
     
-    // Fallback: If for some reason categoryId is missing or doesn't match,
-    // check if the category name matches what we're looking for
-    if (!product.categoryId && product.category === categoryName) {
+    // Only fall back to category name if we absolutely have to
+    if (product.categoryId === undefined && product.category === categoryName) {
       return true;
     }
     

@@ -18,7 +18,7 @@ interface Product {
   stock: number;
 }
 
-// Define a more explicit mapping of default category names to IDs
+// Define a consistent mapping of default category names to IDs
 const DEFAULT_CATEGORY_MAP: {[key: string]: number} = {
   'Spices': 1,
   'Herbs': 2,
@@ -79,91 +79,113 @@ export default function AddProductModal({ isOpen, onClose, existingCategories }:
       return;
     }
     
-    // Find highest existing ID to generate new ID
-    // In a real app, this would be handled by the backend
-    // This is just a simple example for our localStorage implementation
-    const savedStock = localStorage.getItem('productStock');
-    const productStock = savedStock ? JSON.parse(savedStock) : {};
-    const maxId = Object.keys(productStock).length > 0 
-      ? Math.max(...Object.keys(productStock).map(id => parseInt(id)))
-      : 0;
-    
-    const newProductId = maxId + 1;
-    
-    // Determine category ID for new or existing category
-    let categoryId: number;
-    
-    if (isAddingNewCategory) {
-      // For a new category, find the highest category ID and increment
+    try {
+      console.log('Creating new product with category:', finalCategory);
+      
+      // Find highest existing ID to generate new ID
+      // In a real app, this would be handled by the backend
+      // This is just a simple example for our localStorage implementation
+      const savedStock = localStorage.getItem('productStock');
+      const productStock = savedStock ? JSON.parse(savedStock) : {};
+      const maxId = Object.keys(productStock).length > 0 
+        ? Math.max(...Object.keys(productStock).map(id => parseInt(id)))
+        : 0;
+      
+      const newProductId = maxId + 1;
+      
+      // First update the stock value through our context
+      updateProductStock(newProductId, stockValue);
+      
+      // For a new category, we need to generate a unique ID
       const productsJson = localStorage.getItem('products');
       const products = productsJson ? JSON.parse(productsJson) : [];
       
-      // Get all existing categoryIds
-      const existingCategoryIds = products
-        .filter((p: Product) => p.categoryId !== undefined)
-        .map((p: Product) => p.categoryId);
+      // Collect all used category IDs
+      const usedCategoryIds = new Set<number>();
       
-      // Find the max category ID or default to existing categories count
-      const maxCategoryId = existingCategoryIds.length > 0
-        ? Math.max(...existingCategoryIds)
-        : Object.keys(DEFAULT_CATEGORY_MAP).length;
+      // Add default category IDs
+      Object.values(DEFAULT_CATEGORY_MAP).forEach(id => {
+        usedCategoryIds.add(id);
+      });
       
-      // New category gets a new ID
-      categoryId = maxCategoryId + 1;
-    } else {
-      // For existing category, find the category ID from the products
-      const productsJson = localStorage.getItem('products');
-      const products = productsJson ? JSON.parse(productsJson) : [];
+      // Add existing category IDs from products
+      products.forEach((p: Product) => {
+        if (p.categoryId) {
+          usedCategoryIds.add(p.categoryId);
+        }
+      });
       
-      // First check if it's one of our default categories
-      if (DEFAULT_CATEGORY_MAP[category] !== undefined) {
-        categoryId = DEFAULT_CATEGORY_MAP[category];
-      } else {
-        // If not a default category, look for it in existing products
-        const matchingProduct = products.find((p: Product) => p.category === category);
+      console.log('Used category IDs:', Array.from(usedCategoryIds));
+      
+      // Determine category ID for new or existing category
+      let categoryId: number;
+      
+      if (isAddingNewCategory) {
+        // Start with the next ID after the default categories
+        let nextId = Object.keys(DEFAULT_CATEGORY_MAP).length + 1;
         
-        // If found, use that categoryId, otherwise generate a new one
-        if (matchingProduct && matchingProduct.categoryId) {
-          categoryId = matchingProduct.categoryId;
+        // Find the next available ID that's not in use
+        while (usedCategoryIds.has(nextId)) {
+          nextId++;
+        }
+        
+        // New category gets this unique ID
+        categoryId = nextId;
+        console.log('Generated new category ID:', categoryId, 'for new category:', newCategory);
+      } else {
+        // For existing category
+        
+        // First check if it's one of our default categories
+        if (DEFAULT_CATEGORY_MAP[category] !== undefined) {
+          categoryId = DEFAULT_CATEGORY_MAP[category];
+          console.log('Using default category ID:', categoryId, 'for category:', category);
         } else {
-          // Get the highest categoryId and increment
-          const existingCategoryIds = products
-            .filter((p: Product) => p.categoryId !== undefined)
-            .map((p: Product) => p.categoryId);
+          // If not a default category, look for it in existing products
+          const matchingProduct = products.find((p: Product) => p.category === category);
           
-          const maxCategoryId = existingCategoryIds.length > 0
-            ? Math.max(...existingCategoryIds)
-            : Object.keys(DEFAULT_CATEGORY_MAP).length;
-          
-          categoryId = maxCategoryId + 1;
+          // If found, use that categoryId
+          if (matchingProduct && matchingProduct.categoryId) {
+            categoryId = matchingProduct.categoryId;
+            console.log('Using existing category ID:', categoryId, 'from product:', matchingProduct.name);
+          } else {
+            // Generate a new unique ID for this category
+            // Start with the next ID after the default categories
+            let nextId = Object.keys(DEFAULT_CATEGORY_MAP).length + 1;
+            
+            // Find the next available ID that's not in use
+            while (usedCategoryIds.has(nextId)) {
+              nextId++;
+            }
+            
+            categoryId = nextId;
+            console.log('Generated new category ID:', categoryId, 'for existing category without ID:', category);
+          }
         }
       }
+      
+      // Create new product with the determined categoryId
+      const newProduct = {
+        id: newProductId,
+        name: name.trim(),
+        category: finalCategory.trim(),
+        categoryId: categoryId,
+        price: priceValue,
+        stock: stockValue
+      };
+      
+      console.log('Adding new product:', newProduct);
+      
+      products.push(newProduct);
+      localStorage.setItem('products', JSON.stringify(products));
+      
+      // Close modal and refresh page to show new product
+      onClose();
+      window.location.reload(); // In a real app, you would use a better state management approach
+    } catch (error) {
+      console.error('Error creating product:', error);
+      alert('There was an error creating the product. Please try again.');
+      return;
     }
-    
-    // Create new product in localStorage
-    // First update the stock value through our context
-    updateProductStock(newProductId, stockValue);
-    
-    // Then store the product details
-    // In a real app with a database, you would do this differently
-    const productsJson = localStorage.getItem('products');
-    const products = productsJson ? JSON.parse(productsJson) : [];
-    
-    const newProduct = {
-      id: newProductId,
-      name: name.trim(),
-      category: finalCategory.trim(),
-      categoryId: categoryId,
-      price: priceValue,
-      stock: stockValue
-    };
-    
-    products.push(newProduct);
-    localStorage.setItem('products', JSON.stringify(products));
-    
-    // Close modal and refresh page to show new product
-    onClose();
-    window.location.reload(); // In a real app, you would use a better state management approach
   };
   
   if (!isOpen) return null;

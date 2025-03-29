@@ -16,6 +16,17 @@ interface CategoryGridProps {
 
 export default function CategoryGrid({ categories }: CategoryGridProps) {
   const router = useRouter();
+  
+  // Log the categories being rendered to debug
+  console.log('Rendering categories:', JSON.stringify(categories));
+
+  // Check for duplicate IDs
+  const categoryIds = categories.map(cat => cat.id);
+  const hasDuplicateIds = categoryIds.length !== new Set(categoryIds).size;
+  if (hasDuplicateIds) {
+    console.warn('WARNING: Duplicate category IDs detected:', 
+      categoryIds.filter((id, index) => categoryIds.indexOf(id) !== index));
+  }
 
   const handleCategoryClick = (categoryId: number, categoryName: string) => {
     router.push(`/search/category/${categoryId}?name=${encodeURIComponent(categoryName)}`);
@@ -23,9 +34,9 @@ export default function CategoryGrid({ categories }: CategoryGridProps) {
 
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-      {categories.map((category) => (
+      {categories.map((category, index) => (
         <div
-          key={category.id}
+          key={`cat-${category.id}-${category.name}-${index}`}
           className="cursor-pointer overflow-hidden rounded-lg bg-white shadow-md transition-transform hover:scale-105"
           onClick={() => handleCategoryClick(category.id, category.name)}
         >
