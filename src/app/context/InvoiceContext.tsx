@@ -55,6 +55,18 @@ interface InvoiceState {
   restaurant: Restaurant | null;
 }
 
+// Define type for invoice history items
+export interface InvoiceHistoryItem {
+  id: string;
+  date: string;
+  restaurant: Restaurant;
+  items: InvoiceItem[];
+  subtotal: number;
+  tax: number;
+  deliveryFee: number;
+  total: number;
+}
+
 // Define the invoice context interface
 interface InvoiceContextType {
   invoice: InvoiceState;
@@ -67,6 +79,8 @@ interface InvoiceContextType {
   subtotal: number;
   getProductStock: (productId: number) => number;
   updateProductStock: (productId: number, newStock: number) => void;
+  invoiceHistory: InvoiceHistoryItem[];
+  saveInvoiceToHistory: (invoice: InvoiceHistoryItem) => void;
 }
 
 // Create the context with default values
@@ -91,6 +105,7 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
   // Initialize with empty values to prevent hydration mismatch
   const [invoice, setInvoice] = useState<InvoiceState>({ items: [], restaurant: null });
   const [productStock, setProductStock] = useState<{[key: number]: number}>(defaultStockData);
+  const [invoiceHistory, setInvoiceHistory] = useState<InvoiceHistoryItem[]>([]);
   const [isClient, setIsClient] = useState(false);
   
   // After component mounts (client-side only), initialize from localStorage
@@ -111,6 +126,12 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
       // If no saved stock, save the default stock data
       localStorage.setItem('productStock', JSON.stringify(defaultStockData));
     }
+
+    // Get saved invoice history from localStorage
+    const savedHistory = localStorage.getItem('invoiceHistory');
+    if (savedHistory) {
+      setInvoiceHistory(JSON.parse(savedHistory));
+    }
   }, []);
 
   // Save invoice to localStorage whenever it changes (but only on client)
@@ -126,6 +147,13 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
       localStorage.setItem('productStock', JSON.stringify(productStock));
     }
   }, [productStock, isClient]);
+
+  // Save invoice history to localStorage whenever it changes (but only on client)
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem('invoiceHistory', JSON.stringify(invoiceHistory));
+    }
+  }, [invoiceHistory, isClient]);
 
   // Calculate total number of items in invoice
   const totalItems = invoice.items.reduce((total, item) => total + item.quantity, 0);
@@ -239,6 +267,11 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
     }
   };
 
+  // Save an invoice to history
+  const saveInvoiceToHistory = (invoiceItem: InvoiceHistoryItem) => {
+    setInvoiceHistory(prev => [invoiceItem, ...prev]);
+  };
+
   // Provide the invoice context to children
   return (
     <InvoiceContext.Provider value={{
@@ -251,7 +284,9 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
       totalItems,
       subtotal,
       getProductStock,
-      updateProductStock
+      updateProductStock,
+      invoiceHistory,
+      saveInvoiceToHistory
     }}>
       {children}
     </InvoiceContext.Provider>

@@ -12,7 +12,7 @@ const robotoMono = Roboto_Mono({
 });
 
 export default function CheckoutPage() {
-  const { invoice, clearInvoice, totalItems, subtotal } = useInvoice();
+  const { invoice, clearInvoice, totalItems, subtotal, saveInvoiceToHistory } = useInvoice();
   const router = useRouter();
   const [orderId, setOrderId] = useState('');
   const [orderDate, setOrderDate] = useState('');
@@ -43,7 +43,77 @@ export default function CheckoutPage() {
 
   const handleGenerateInvoice = () => {
     setIsInvoiceGenerated(true);
-    // In a real app, you would save the invoice to a database here
+    // Save to invoice history
+    if (invoice.restaurant) {
+      saveInvoiceToHistory({
+        id: orderId,
+        date: orderDate,
+        restaurant: invoice.restaurant,
+        items: invoice.items,
+        subtotal,
+        tax,
+        deliveryFee,
+        total
+      });
+    }
+  };
+
+  const handleDownloadPDF = () => {
+    // Import jsPDF with proper type definition
+    import('jspdf').then(({ default: jsPDF }) => {
+      // Import autoTable dynamically
+      import('jspdf-autotable').then((jsPDFAutoTable) => {
+        // Create document
+        const doc = new jsPDF();
+        
+        // Add header
+        doc.setFontSize(22);
+        doc.setTextColor(44, 62, 80);
+        doc.text('INVOICE', 105, 15, { align: 'center' });
+        
+        // Add invoice details
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Invoice #: ${orderId}`, 14, 30);
+        doc.text(`Date: ${orderDate}`, 14, 37);
+        doc.text(`Restaurant: ${invoice.restaurant?.name}`, 14, 44);
+        doc.text(`Cuisine: ${invoice.restaurant?.cuisine}`, 14, 51);
+
+        // Add items table
+        const tableColumn = ["Item", "Category", "Price", "Quantity", "Total"];
+        const tableRows = invoice.items.map(item => [
+          item.name,
+          item.category,
+          `$${item.price.toFixed(2)}`,
+          item.quantity,
+          `$${(item.price * item.quantity).toFixed(2)}`
+        ]);
+
+        // Use autoTable directly
+        jsPDFAutoTable.default(doc, {
+          startY: 60,
+          head: [tableColumn],
+          body: tableRows,
+          theme: 'striped',
+          headStyles: {
+            fillColor: [66, 139, 202],
+            textColor: 255,
+            fontStyle: 'bold'
+          },
+          margin: { top: 10 }
+        });
+        
+        // Add summary - need to get finalY from lastAutoTable
+        const finalY = (doc as any).lastAutoTable.finalY + 10;
+        doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 140, finalY);
+        doc.text(`Tax (${(taxRate * 100).toFixed(0)}%): $${tax.toFixed(2)}`, 140, finalY + 7);
+        doc.text(`Delivery Fee: $${deliveryFee.toFixed(2)}`, 140, finalY + 14);
+        doc.text(`Total: $${total.toFixed(2)}`, 140, finalY + 21);
+        
+        // Save the PDF
+        doc.save(`Invoice_${orderId}.pdf`);
+      });
+    });
   };
 
   const handleNewInvoice = () => {
@@ -62,16 +132,26 @@ export default function CheckoutPage() {
         <h1 className={`${robotoMono.className} border-b-4 border-blue-500 pb-2 text-3xl uppercase tracking-wider text-gray-900`}>
           {isInvoiceGenerated ? 'INVOICE' : 'FINALIZE INVOICE'}
         </h1>
-        {!isInvoiceGenerated && (
+        <div className="flex items-center space-x-2">
+          {!isInvoiceGenerated && (
+            <Link 
+              href="/search" 
+              className="flex items-center text-blue-600 hover:text-blue-800"
+            >
+              <span className="material-icons mr-1">add</span>
+              <span className="hidden sm:inline">Add More Items</span>
+              <span className="sm:hidden">Add</span>
+            </Link>
+          )}
           <Link 
-            href="/search" 
-            className="flex items-center text-blue-600 hover:text-blue-800"
+            href="/history" 
+            className="flex items-center rounded-md bg-gray-200 px-3 py-2 text-gray-700 hover:bg-gray-300"
           >
-            <span className="material-icons mr-1">add</span>
-            <span className="hidden sm:inline">Add More Items</span>
-            <span className="sm:hidden">Add</span>
+            <span className="material-icons mr-1">history</span>
+            <span className="hidden sm:inline">Invoice History</span>
+            <span className="sm:hidden">History</span>
           </Link>
-        )}
+        </div>
       </div>
 
       {/* Invoice Summary */}
@@ -148,13 +228,22 @@ export default function CheckoutPage() {
         {/* Action Buttons */}
         <div className="flex flex-col-reverse gap-4 md:flex-row md:justify-end">
           {isInvoiceGenerated ? (
-            <button
-              onClick={handleNewInvoice}
-              className="flex items-center justify-center rounded-md bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 font-bold"
-            >
-              <span className="material-icons mr-2">add_circle</span>
-              Create New Invoice
-            </button>
+            <>
+              <button
+                onClick={handleDownloadPDF}
+                className="flex items-center justify-center rounded-md bg-green-600 px-6 py-3 text-white hover:bg-green-700 font-bold"
+              >
+                <span className="material-icons mr-2">download</span>
+                Download PDF
+              </button>
+              <button
+                onClick={handleNewInvoice}
+                className="flex items-center justify-center rounded-md bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 font-bold"
+              >
+                <span className="material-icons mr-2">add_circle</span>
+                Create New Invoice
+              </button>
+            </>
           ) : (
             <>
               <button
