@@ -29,22 +29,55 @@ export default function HistoryPage() {
       import('jspdf-autotable').then((jsPDFAutoTable) => {
         // Create document
         const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.width;
+        const margin = 14;
         
-        // Add header
-        doc.setFontSize(22);
-        doc.setTextColor(44, 62, 80);
-        doc.text('INVOICE', 105, 15, { align: 'center' });
+        // Add company header
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Elite-Prod', margin, 20);
         
-        // Add invoice details
-        doc.setFontSize(12);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`Invoice #: ${invoice.id}`, 14, 30);
-        doc.text(`Date: ${invoice.date}`, 14, 37);
-        doc.text(`Restaurant: ${invoice.restaurant.name}`, 14, 44);
-        doc.text(`Cuisine: ${invoice.restaurant.cuisine}`, 14, 51);
+        // Add company subtitle
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Elite Products LLC', margin, 25);
         
-        // Add items table
-        const tableColumn = ["Item", "Category", "Price", "Quantity", "Total"];
+        // Add subtle separator line
+        doc.setDrawColor(80, 80, 80);
+        doc.setLineWidth(0.5);
+        doc.line(margin, 30, pageWidth - margin, 30);
+        
+        // Add invoice title
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'normal');
+        doc.text('INVOICE', pageWidth - margin, 20, { align: 'right' });
+        
+        // Add invoice metadata
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('INVOICE #:', margin, 40);
+        doc.text('DATE:', margin, 47);
+        doc.text('RESTAURANT:', margin, 54);
+        doc.text('CUISINE:', margin, 61);
+        
+        // Add invoice metadata values
+        doc.setFont('helvetica', 'normal');
+        doc.text(invoice.id.toString(), margin + 30, 40);
+        doc.text(invoice.date, margin + 30, 47);
+        doc.text(invoice.restaurant.name, margin + 30, 54);
+        doc.text(invoice.restaurant.cuisine, margin + 30, 61);
+        
+        // Add billing summary label
+        doc.setFont('helvetica', 'bold');
+        doc.text('ITEMS', margin, 75);
+        
+        // Add another separator line
+        doc.setDrawColor(180, 180, 180);
+        doc.setLineWidth(0.2);
+        doc.line(margin, 78, pageWidth - margin, 78);
+        
+        // Add items table with clean black and white style
+        const tableColumn = ["Item", "Category", "Price", "Qty", "Total"];
         const tableRows = invoice.items.map((item: any) => [
           item.name,
           item.category,
@@ -53,26 +86,71 @@ export default function HistoryPage() {
           `$${(item.price * item.quantity).toFixed(2)}`
         ]);
         
-        // Use autoTable directly
+        // Use autoTable with professional black and white theme
         jsPDFAutoTable.default(doc, {
-          startY: 60,
+          startY: 83,
           head: [tableColumn],
           body: tableRows,
-          theme: 'striped',
-          headStyles: {
-            fillColor: [66, 139, 202],
-            textColor: 255,
-            fontStyle: 'bold'
+          theme: 'plain',
+          styles: {
+            fontSize: 9,
+            cellPadding: 4,
           },
-          margin: { top: 10 }
+          headStyles: {
+            fillColor: [240, 240, 240],
+            textColor: [0, 0, 0],
+            fontStyle: 'bold',
+            lineWidth: 0.1,
+            lineColor: [200, 200, 200],
+          },
+          bodyStyles: {
+            lineWidth: 0.1,
+            lineColor: [220, 220, 220],
+          },
+          alternateRowStyles: {
+            fillColor: [248, 248, 248],
+          },
+          margin: { left: margin, right: margin },
         });
         
-        // Add summary
+        // Add summary section
         const finalY = (doc as any).lastAutoTable.finalY + 10;
-        doc.text(`Subtotal: $${invoice.subtotal.toFixed(2)}`, 140, finalY);
-        doc.text(`Tax (6%): $${invoice.tax.toFixed(2)}`, 140, finalY + 7);
-        doc.text(`Delivery Fee: $${invoice.deliveryFee.toFixed(2)}`, 140, finalY + 14);
-        doc.text(`Total: $${invoice.total.toFixed(2)}`, 140, finalY + 21);
+        
+        // Add summary divider
+        doc.setDrawColor(180, 180, 180);
+        doc.line(pageWidth - 80, finalY - 5, pageWidth - margin, finalY - 5);
+        
+        // Add summary items
+        const summaryX = pageWidth - 80;
+        const valueX = pageWidth - margin;
+        
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Subtotal:', summaryX, finalY, { align: 'left' });
+        doc.text(`$${invoice.subtotal.toFixed(2)}`, valueX, finalY, { align: 'right' });
+        
+        doc.text('Tax (6%):', summaryX, finalY + 7, { align: 'left' });
+        doc.text(`$${invoice.tax.toFixed(2)}`, valueX, finalY + 7, { align: 'right' });
+        
+        doc.text('Delivery Fee:', summaryX, finalY + 14, { align: 'left' });
+        doc.text(`$${invoice.deliveryFee.toFixed(2)}`, valueX, finalY + 14, { align: 'right' });
+        
+        // Total with stronger emphasis
+        doc.setDrawColor(100, 100, 100);
+        doc.line(pageWidth - 80, finalY + 18, pageWidth - margin, finalY + 18);
+        
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.text('TOTAL:', summaryX, finalY + 25, { align: 'left' });
+        doc.text(`$${invoice.total.toFixed(2)}`, valueX, finalY + 25, { align: 'right' });
+        
+        // Add footer
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setDrawColor(120, 120, 120);
+        doc.line(margin, 270, pageWidth - margin, 270);
+        doc.text('Thank you for your business', pageWidth / 2, 277, { align: 'center' });
+        doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, 282, { align: 'center' });
         
         // Save the PDF
         doc.save(`Invoice_${invoice.id}.pdf`);
