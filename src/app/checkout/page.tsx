@@ -13,7 +13,7 @@ const robotoMono = Roboto_Mono({
 });
 
 export default function CheckoutPage() {
-  const { invoice, clearInvoice, totalItems, subtotal, saveInvoiceToHistory, updateProductStock } = useInvoice();
+  const { invoice, clearInvoice, totalItems, subtotal, creditsTotal, saveInvoiceToHistory, updateProductStock } = useInvoice();
   const router = useRouter();
   const [orderId, setOrderId] = useState('');
   const [orderDate, setOrderDate] = useState('');
@@ -181,6 +181,7 @@ export default function CheckoutPage() {
         date: orderDate,
         restaurant: invoice.restaurant,
         items: invoice.items,
+        credits: invoice.credits,
         subtotal,
         tax,
         deliveryFee,
@@ -235,9 +236,54 @@ export default function CheckoutPage() {
           margin: { top: 10 }
         });
         
-        // Add summary - need to get finalY from lastAutoTable
-        const finalY = (doc as any).lastAutoTable.finalY + 10;
-        doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 140, finalY);
+        // Get the Y position after the items table
+        let finalY = (doc as any).lastAutoTable.finalY + 10;
+        
+        // Add credits table if there are any credits
+        if (invoice.credits && invoice.credits.length > 0) {
+          doc.setFontSize(14);
+          doc.setTextColor(0, 0, 0);
+          doc.text("Credits Applied", 14, finalY + 5);
+          
+          const creditTableColumn = ["Description", "Amount", "Quantity", "Total"];
+          const creditTableRows = invoice.credits.map(credit => [
+            credit.name,
+            `$${Math.abs(credit.price).toFixed(2)}`,
+            credit.quantity,
+            `-$${Math.abs(credit.price * credit.quantity).toFixed(2)}`
+          ]);
+          
+          jsPDFAutoTable.default(doc, {
+            startY: finalY + 10,
+            head: [creditTableColumn],
+            body: creditTableRows,
+            theme: 'striped',
+            headStyles: {
+              fillColor: [46, 125, 50], // Green color for credits
+              textColor: 255,
+              fontStyle: 'bold'
+            },
+            bodyStyles: {
+              textColor: [46, 125, 50] // Green color for credits
+            },
+            margin: { top: 10 }
+          });
+          
+          finalY = (doc as any).lastAutoTable.finalY + 10;
+        }
+        
+        // Add summary with proper Y position
+        const itemsSubtotal = invoice.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+        
+        doc.text(`Items Subtotal: $${itemsSubtotal.toFixed(2)}`, 140, finalY);
+        
+        if (creditsTotal !== 0) {
+          doc.setTextColor(46, 125, 50); // Green color for credits
+          doc.text(`Credits: -$${Math.abs(creditsTotal).toFixed(2)}`, 140, finalY + 7);
+          doc.setTextColor(0, 0, 0); // Reset to black
+          finalY += 7;
+        }
+        
         doc.text(`Tax (${(taxRate * 100).toFixed(0)}%): $${tax.toFixed(2)}`, 140, finalY + 7);
         doc.text(`Delivery Fee: $${deliveryFee.toFixed(2)}`, 140, finalY + 14);
         doc.text(`Total: $${total.toFixed(2)}`, 140, finalY + 21);

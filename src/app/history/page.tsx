@@ -113,10 +113,59 @@ export default function HistoryPage() {
           margin: { left: margin, right: margin },
         });
         
-        // Add summary section
-        const finalY = (doc as any).lastAutoTable.finalY + 10;
+        // Get the Y position after the items table
+        let finalY = (doc as any).lastAutoTable.finalY + 10;
         
-        // Add summary divider
+        // Add credits table if there are any credits
+        if (invoice.credits && invoice.credits.length > 0) {
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'bold');
+          doc.text('CREDITS', margin, finalY + 5);
+          
+          // Add separator line for credits
+          doc.setDrawColor(180, 180, 180);
+          doc.setLineWidth(0.2);
+          doc.line(margin, finalY + 8, pageWidth - margin, finalY + 8);
+          
+          const creditTableColumn = ["Description", "Amount", "Qty", "Total"];
+          const creditTableRows = invoice.credits.map((credit: any) => [
+            credit.name,
+            `$${Math.abs(credit.price).toFixed(2)}`,
+            credit.quantity,
+            `-$${Math.abs(credit.price * credit.quantity).toFixed(2)}`
+          ]);
+          
+          jsPDFAutoTable.default(doc, {
+            startY: finalY + 13,
+            head: [creditTableColumn],
+            body: creditTableRows,
+            theme: 'plain',
+            styles: {
+              fontSize: 9,
+              cellPadding: 4,
+            },
+            headStyles: {
+              fillColor: [240, 255, 240], // Light green background for credits
+              textColor: [0, 100, 0], // Dark green text
+              fontStyle: 'bold',
+              lineWidth: 0.1,
+              lineColor: [200, 200, 200],
+            },
+            bodyStyles: {
+              lineWidth: 0.1,
+              lineColor: [220, 220, 220],
+              textColor: [0, 100, 0], // Dark green text
+            },
+            alternateRowStyles: {
+              fillColor: [248, 255, 248], // Light green alternate rows
+            },
+            margin: { left: margin, right: margin },
+          });
+          
+          finalY = (doc as any).lastAutoTable.finalY + 10;
+        }
+        
+        // Add summary section
         doc.setDrawColor(180, 180, 180);
         doc.line(pageWidth - 80, finalY - 5, pageWidth - margin, finalY - 5);
         
@@ -129,20 +178,37 @@ export default function HistoryPage() {
         doc.text('Subtotal:', summaryX, finalY, { align: 'left' });
         doc.text(`$${invoice.subtotal.toFixed(2)}`, valueX, finalY, { align: 'right' });
         
-        doc.text('Tax (6%):', summaryX, finalY + 7, { align: 'left' });
-        doc.text(`$${invoice.tax.toFixed(2)}`, valueX, finalY + 7, { align: 'right' });
+        // If there are credits, show them in the summary
+        let currY = finalY;
+        if (invoice.credits && invoice.credits.length > 0) {
+          const creditsTotal = invoice.credits.reduce(
+            (total: number, credit: any) => total + (credit.price * credit.quantity), 
+            0
+          );
+          
+          if (creditsTotal !== 0) {
+            currY += 7;
+            doc.setTextColor(0, 100, 0); // Green for credits
+            doc.text('Credits:', summaryX, currY, { align: 'left' });
+            doc.text(`-$${Math.abs(creditsTotal).toFixed(2)}`, valueX, currY, { align: 'right' });
+            doc.setTextColor(0, 0, 0); // Reset to black
+          }
+        }
         
-        doc.text('Delivery Fee:', summaryX, finalY + 14, { align: 'left' });
-        doc.text(`$${invoice.deliveryFee.toFixed(2)}`, valueX, finalY + 14, { align: 'right' });
+        doc.text('Tax (6%):', summaryX, currY + 7, { align: 'left' });
+        doc.text(`$${invoice.tax.toFixed(2)}`, valueX, currY + 7, { align: 'right' });
+        
+        doc.text('Delivery Fee:', summaryX, currY + 14, { align: 'left' });
+        doc.text(`$${invoice.deliveryFee.toFixed(2)}`, valueX, currY + 14, { align: 'right' });
         
         // Total with stronger emphasis
         doc.setDrawColor(100, 100, 100);
-        doc.line(pageWidth - 80, finalY + 18, pageWidth - margin, finalY + 18);
+        doc.line(pageWidth - 80, currY + 18, pageWidth - margin, currY + 18);
         
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(11);
-        doc.text('TOTAL:', summaryX, finalY + 25, { align: 'left' });
-        doc.text(`$${invoice.total.toFixed(2)}`, valueX, finalY + 25, { align: 'right' });
+        doc.text('TOTAL:', summaryX, currY + 25, { align: 'left' });
+        doc.text(`$${invoice.total.toFixed(2)}`, valueX, currY + 25, { align: 'right' });
         
         // Add footer
         doc.setFontSize(8);
@@ -222,6 +288,20 @@ export default function HistoryPage() {
                     <span className="text-gray-800">Subtotal:</span>
                     <span className="font-medium text-gray-900">${invoice.subtotal.toFixed(2)}</span>
                   </div>
+                  
+                  {/* Show credits if present */}
+                  {invoice.credits && invoice.credits.length > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-800">Credits:</span>
+                      <span className="font-medium text-green-600">
+                        -${Math.abs(invoice.credits.reduce(
+                          (total, credit) => total + (credit.price * credit.quantity), 
+                          0
+                        )).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                  
                   <div className="mt-2 border-t border-gray-200 pt-2 font-bold">
                     <div className="flex justify-between">
                       <span className="text-gray-900">Total:</span>
@@ -231,6 +311,7 @@ export default function HistoryPage() {
                 </div>
                 
                 <div className="text-sm text-gray-700">
+                  {/* Show items */}
                   {invoice.items.slice(0, 3).map((item: any, i: number) => (
                     <div key={i} className="mb-1">
                       {item.quantity} × {item.name}
@@ -239,6 +320,18 @@ export default function HistoryPage() {
                   {invoice.items.length > 3 && (
                     <div className="text-gray-600">
                       +{invoice.items.length - 3} more items
+                    </div>
+                  )}
+                  
+                  {/* Show credits */}
+                  {invoice.credits && invoice.credits.length > 0 && (
+                    <div className="mt-2 border-t border-gray-200 pt-2">
+                      <div className="text-sm font-medium text-green-600">Credits:</div>
+                      {invoice.credits.map((credit: any, i: number) => (
+                        <div key={i} className="mb-1 text-green-600">
+                          {credit.quantity} × {credit.name} (-${Math.abs(credit.price).toFixed(2)})
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

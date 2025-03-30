@@ -11,6 +11,14 @@ export interface InvoiceItem {
   category: string;
 }
 
+// Define credit item interface
+export interface CreditItem {
+  id: string; // Using string id to distinguish from regular items
+  name: string;
+  price: number; // This will be a negative value
+  quantity: number;
+}
+
 // Define the restaurant interface
 export interface Restaurant {
   id: number;
@@ -52,6 +60,7 @@ const defaultStockData = {
 // Define the invoice state interface
 interface InvoiceState {
   items: InvoiceItem[];
+  credits: CreditItem[];
   restaurant: Restaurant | null;
 }
 
@@ -61,6 +70,7 @@ export interface InvoiceHistoryItem {
   date: string;
   restaurant: Restaurant;
   items: InvoiceItem[];
+  credits: CreditItem[];
   subtotal: number;
   tax: number;
   deliveryFee: number;
@@ -73,10 +83,14 @@ interface InvoiceContextType {
   addItem: (item: Omit<InvoiceItem, 'quantity'>) => void;
   removeItem: (itemId: number) => void;
   updateQuantity: (itemId: number, quantity: number) => void;
+  addCredit: (credit: Omit<CreditItem, 'id'>) => void;
+  removeCredit: (creditId: string) => void;
+  updateCreditQuantity: (creditId: string, quantity: number) => void;
   clearInvoice: () => void;
   setRestaurant: (restaurant: Restaurant) => void;
   totalItems: number;
   subtotal: number;
+  creditsTotal: number;
   getProductStock: (productId: number) => number;
   updateProductStock: (productId: number, newStock: number) => void;
   invoiceHistory: InvoiceHistoryItem[];
@@ -103,10 +117,15 @@ interface InvoiceProviderProps {
 // Invoice provider component
 export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
   // Initialize with empty values to prevent hydration mismatch
-  const [invoice, setInvoice] = useState<InvoiceState>({ items: [], restaurant: null });
+  const [invoice, setInvoice] = useState<InvoiceState>({ items: [], credits: [], restaurant: null });
   const [productStock, setProductStock] = useState<{[key: number]: number}>(defaultStockData);
   const [invoiceHistory, setInvoiceHistory] = useState<InvoiceHistoryItem[]>([]);
   const [isClient, setIsClient] = useState(false);
+  
+  // Defensive measure: ensure credits is always defined, even during race conditions
+  if (!invoice.credits) {
+    invoice.credits = [];
+  }
   
   // After component mounts (client-side only), initialize from localStorage
   useEffect(() => {
@@ -115,7 +134,18 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
     // Get saved invoice from localStorage
     const savedInvoice = localStorage.getItem('invoice');
     if (savedInvoice) {
-      setInvoice(JSON.parse(savedInvoice));
+      try {
+        const parsedInvoice = JSON.parse(savedInvoice);
+        // Ensure credits array is always present (for backward compatibility)
+        if (!parsedInvoice.credits) {
+          parsedInvoice.credits = [];
+        }
+        setInvoice(parsedInvoice);
+      } catch (error) {
+        console.error("Error parsing saved invoice:", error);
+        // If there's an error, use the default state
+        setInvoice({ items: [], credits: [], restaurant: null });
+      }
     }
     
     // Get saved stock data from localStorage
@@ -130,7 +160,18 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
     // Get saved invoice history from localStorage
     const savedHistory = localStorage.getItem('invoiceHistory');
     if (savedHistory) {
-      setInvoiceHistory(JSON.parse(savedHistory));
+      try {
+        const parsedHistory = JSON.parse(savedHistory);
+        // Ensure each history item has a credits property
+        const updatedHistory = parsedHistory.map((item: any) => ({
+          ...item,
+          credits: item.credits || [] // Add empty credits array if missing
+        }));
+        setInvoiceHistory(updatedHistory);
+      } catch (error) {
+        console.error("Error parsing invoice history:", error);
+        setInvoiceHistory([]);
+      }
     }
   }, []);
 
@@ -158,8 +199,14 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
   // Calculate total number of items in invoice
   const totalItems = invoice.items.reduce((total, item) => total + item.quantity, 0);
 
-  // Calculate subtotal
-  const subtotal = invoice.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+  // Calculate subtotal of regular items
+  const itemsSubtotal = invoice.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+  
+  // Calculate total credits with defensive coding to handle potentially undefined credits
+  const creditsTotal = invoice.credits?.reduce((total, credit) => total + (credit.price * credit.quantity), 0) || 0;
+  
+  // Final subtotal is items minus credits
+  const subtotal = itemsSubtotal + creditsTotal;
 
   // Get stock for a product
   const getProductStock = (productId: number): number => {
@@ -306,9 +353,54 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
     }));
   };
 
+  // Add a credit to the invoice
+  const addCredit = (credit: Omit<CreditItem, 'id'>) => {
+    // Ensure price is negative
+    const creditPrice = credit.price > 0 ? -credit.price : credit.price;
+    
+    setInvoice(prevInvoice => {
+      // Generate a unique ID for this credit
+      const creditId = `credit-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      
+      return {
+        ...prevInvoice,
+        credits: [...prevInvoice.credits, { 
+          ...credit, 
+          id: creditId,
+          price: creditPrice // Ensure price is negative
+        }]
+      };
+    });
+  };
+
+  // Remove a credit from the invoice
+  const removeCredit = (creditId: string) => {
+    setInvoice(prevInvoice => ({
+      ...prevInvoice,
+      credits: prevInvoice.credits.filter(credit => credit.id !== creditId)
+    }));
+  };
+
+  // Update the quantity of a credit
+  const updateCreditQuantity = (creditId: string, quantity: number) => {
+    if (quantity < 1) {
+      // If quantity is less than 1, remove the credit
+      removeCredit(creditId);
+      return;
+    }
+    
+    // Update the quantity
+    setInvoice(prevInvoice => ({
+      ...prevInvoice,
+      credits: prevInvoice.credits.map(credit => 
+        credit.id === creditId ? { ...credit, quantity } : credit
+      )
+    }));
+  };
+
   // Clear the invoice
   const clearInvoice = () => {
-    setInvoice({ items: [], restaurant: null });
+    setInvoice({ items: [], credits: [], restaurant: null });
   };
 
   // Set the restaurant
@@ -316,7 +408,7 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
     // If changing restaurant, clear the invoice first
     if (invoice.restaurant && invoice.restaurant.id !== restaurant.id && invoice.items.length > 0) {
       if (confirm('Changing restaurant will clear your current invoice. Continue?')) {
-        setInvoice({ items: [], restaurant });
+        setInvoice({ items: [], credits: [], restaurant });
       }
     } else {
       setInvoice(prevInvoice => ({
@@ -338,10 +430,14 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
       addItem,
       removeItem,
       updateQuantity,
+      addCredit,
+      removeCredit,
+      updateCreditQuantity,
       clearInvoice,
       setRestaurant,
       totalItems,
       subtotal,
+      creditsTotal,
       getProductStock,
       updateProductStock,
       invoiceHistory,

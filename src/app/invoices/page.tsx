@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useInvoice } from '../context/InvoiceContext';
+import React, { useEffect, useState } from 'react';
+import { useInvoice, CreditItem } from '../context/InvoiceContext';
 import { Roboto_Mono } from "next/font/google";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -13,8 +13,26 @@ const robotoMono = Roboto_Mono({
 });
 
 export default function InvoicesPage() {
-  const { invoice, updateQuantity, removeItem, clearInvoice, totalItems, subtotal, getProductStock } = useInvoice();
+  const { 
+    invoice, 
+    updateQuantity, 
+    removeItem, 
+    clearInvoice, 
+    totalItems, 
+    subtotal, 
+    creditsTotal,
+    addCredit,
+    removeCredit,
+    updateCreditQuantity,
+    getProductStock 
+  } = useInvoice();
   const router = useRouter();
+  
+  // State for credit form
+  const [showCreditForm, setShowCreditForm] = useState(false);
+  const [creditName, setCreditName] = useState('');
+  const [creditPrice, setCreditPrice] = useState('');
+  const [creditQuantity, setCreditQuantity] = useState('1');
   
   // Check stock availability when page loads
   useEffect(() => {
@@ -91,6 +109,43 @@ export default function InvoicesPage() {
 
   const handleGenerateInvoice = () => {
     router.push('/checkout');
+  };
+
+  // Add a new credit
+  const handleAddCredit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate inputs
+    const price = parseFloat(creditPrice);
+    const quantity = parseInt(creditQuantity);
+    
+    if (creditName.trim() === '') {
+      alert('Please enter a credit description');
+      return;
+    }
+    
+    if (isNaN(price) || price <= 0) {
+      alert('Please enter a valid price greater than zero');
+      return;
+    }
+    
+    if (isNaN(quantity) || quantity <= 0) {
+      alert('Please enter a valid quantity greater than zero');
+      return;
+    }
+    
+    // Add the credit to the invoice
+    addCredit({
+      name: creditName,
+      price: -price, // Make it negative to reduce the total
+      quantity: quantity
+    });
+    
+    // Reset form
+    setCreditName('');
+    setCreditPrice('');
+    setCreditQuantity('1');
+    setShowCreditForm(false);
   };
 
   return (
@@ -220,12 +275,157 @@ export default function InvoicesPage() {
               </div>
             </div>
 
+            {/* Credits Section */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold text-gray-900">Credits</h3>
+                <button 
+                  onClick={() => setShowCreditForm(!showCreditForm)}
+                  className="flex items-center text-gray-700 hover:text-gray-900"
+                >
+                  <span className="material-icons mr-1">{showCreditForm ? 'close' : 'add'}</span>
+                  {showCreditForm ? 'Cancel' : 'Add Credit'}
+                </button>
+              </div>
+              
+              {/* Credit Form */}
+              {showCreditForm && (
+                <div className="mb-4 p-4 border border-gray-200 rounded-md bg-gray-50">
+                  <h4 className="text-md font-bold text-gray-900 mb-3">Add New Credit</h4>
+                  <form onSubmit={handleAddCredit}>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                      <div className="md:col-span-2">
+                        <label htmlFor="creditName" className="block text-sm font-medium text-gray-700 mb-1">
+                          Description
+                        </label>
+                        <input
+                          id="creditName"
+                          type="text"
+                          value={creditName}
+                          onChange={(e) => setCreditName(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 text-black"
+                          placeholder="e.g., Customer Discount"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="creditPrice" className="block text-sm font-medium text-gray-700 mb-1">
+                          Amount ($)
+                        </label>
+                        <input
+                          id="creditPrice"
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          value={creditPrice}
+                          onChange={(e) => setCreditPrice(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 text-black"
+                          placeholder="10.00"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="creditQuantity" className="block text-sm font-medium text-gray-700 mb-1">
+                          Quantity
+                        </label>
+                        <input
+                          id="creditQuantity"
+                          type="number"
+                          min="1"
+                          value={creditQuantity}
+                          onChange={(e) => setCreditQuantity(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 text-black"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 flex justify-end">
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 focus:outline-none"
+                      >
+                        Add Credit
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+              
+              {/* Credit Items List */}
+              {invoice.credits && invoice.credits.length > 0 ? (
+                <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  <table className="w-full min-w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200 text-left">
+                        <th className="px-4 pb-3 text-sm font-bold text-gray-700 sm:pl-0">Description</th>
+                        <th className="px-4 pb-3 text-sm font-bold text-gray-700">Qty</th>
+                        <th className="px-4 pb-3 text-sm font-bold text-gray-700">Amount</th>
+                        <th className="px-4 pb-3 text-right text-sm font-bold text-gray-700 sm:pr-0">Total</th>
+                        <th className="px-4 pb-3 text-right text-sm font-bold text-gray-700 sm:pr-0">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {invoice.credits.map((credit) => (
+                        <tr key={credit.id} className="border-b border-gray-100">
+                          <td className="px-4 py-3 sm:pl-0">
+                            <p className="font-bold text-green-600">{credit.name}</p>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center border border-gray-300 rounded-md w-24">
+                              <button 
+                                onClick={() => updateCreditQuantity(credit.id, credit.quantity - 1)}
+                                className="px-3 py-1 hover:bg-gray-100 text-gray-900 font-bold"
+                              >
+                                -
+                              </button>
+                              <span className="px-3 font-medium text-gray-900">{credit.quantity}</span>
+                              <button 
+                                onClick={() => updateCreditQuantity(credit.id, credit.quantity + 1)}
+                                className="px-3 py-1 hover:bg-gray-100 text-gray-900 font-bold"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 font-medium text-gray-900">${Math.abs(credit.price).toFixed(2)}</td>
+                          <td className="px-4 py-3 text-right font-bold text-green-600 sm:pr-0">
+                            -${Math.abs(credit.price * credit.quantity).toFixed(2)}
+                          </td>
+                          <td className="px-4 py-3 text-right sm:pr-0">
+                            <button 
+                              onClick={() => removeCredit(credit.id)}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <span className="material-icons">delete</span>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-gray-500 italic">No credits applied to this invoice.</p>
+              )}
+            </div>
+
             {/* Invoice Summary */}
             <div className="mb-6 border-b border-gray-200 pb-6">
               <div className="flex justify-between">
                 <span className="font-medium text-gray-700">Subtotal ({totalItems} items)</span>
-                <span className="font-bold text-gray-900">${subtotal.toFixed(2)}</span>
+                <span className="font-bold text-gray-900">${(subtotal - creditsTotal).toFixed(2)}</span>
               </div>
+              
+              {invoice.credits && invoice.credits.length > 0 && (
+                <div className="mt-2 flex justify-between">
+                  <span className="font-medium text-gray-700">Credits</span>
+                  <span className="font-bold text-green-600">-${Math.abs(creditsTotal).toFixed(2)}</span>
+                </div>
+              )}
+              
               <div className="mt-2 flex justify-between">
                 <span className="font-medium text-gray-700">Tax ({(taxRate * 100).toFixed(0)}%)</span>
                 <span className="font-bold text-gray-900">${tax.toFixed(2)}</span>
