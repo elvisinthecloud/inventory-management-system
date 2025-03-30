@@ -80,68 +80,104 @@ export default function ProductCard({ product }: { product: Product }) {
     return 'text-green-600';
   };
 
+  // Get appropriate badge color for category
+  const getCategoryBadgeColor = () => {
+    const category = product.category.toLowerCase();
+    if (category.includes('spice')) return 'bg-amber-100 text-amber-800';
+    if (category.includes('herb')) return 'bg-emerald-100 text-emerald-800';
+    if (category.includes('ice') || category.includes('cream')) return 'bg-sky-100 text-sky-800';
+    if (category.includes('vegetable')) return 'bg-green-100 text-green-800';
+    if (category.includes('fruit')) return 'bg-red-100 text-red-800';
+    if (category.includes('dairy')) return 'bg-blue-100 text-blue-800';
+    return 'bg-gray-100 text-gray-800';
+  };
+
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
-      <h3 className="text-lg font-bold text-gray-900">{product.name}</h3>
-      <p className="text-md font-medium text-gray-700">{product.category}</p>
+    <div className="relative bg-white border border-gray-200 overflow-hidden transition-all duration-200 hover:shadow-md">
+      {/* Stock status indicator (top bar) */}
+      <div 
+        className={`absolute top-0 left-0 right-0 h-1 ${
+          product.stock <= 5 ? 'bg-red-500' : 
+          product.stock <= 10 ? 'bg-amber-500' : 
+          'bg-green-500'
+        }`}
+      />
       
-      {/* Display stock information */}
-      <div className="mt-2 flex items-center">
-        <span className="text-sm font-medium text-gray-600">Stock: </span>
-        <span className={`ml-1 text-sm font-bold ${getStockStatusColor()}`}>
-          {product.stock}
-        </span>
-      </div>
-      
-      <p className="mt-2 text-lg font-bold text-gray-900">${product.price.toFixed(2)}</p>
-      
-      {quantity === 0 ? (
-        <button 
-          onClick={handleAddToInvoice}
-          className={`mt-4 flex w-full items-center justify-center gap-1 rounded-md ${
-            isStockLimitReached 
-              ? 'bg-gray-400 cursor-not-allowed' 
-              : 'bg-blue-600 hover:bg-blue-700'
-          } px-4 py-3 text-base font-semibold text-white transition-colors sm:w-auto`}
-          disabled={isStockLimitReached}
-        >
-          <span className="material-icons text-sm">receipt</span>
-          {isStockLimitReached ? 'Out of Stock' : 'Add to Invoice'}
-        </button>
-      ) : (
-        <div className="mt-4 flex items-center justify-between">
-          <div className="flex items-center border border-gray-300 rounded-md">
-            <button 
-              onClick={handleDecreaseQuantity}
-              className="px-3 py-1 hover:bg-gray-100 text-gray-900 font-bold"
-            >
-              -
-            </button>
-            <span className="px-4 font-medium text-gray-900">{quantity}</span>
-            <button 
-              onClick={handleIncreaseQuantity}
-              className={`px-3 py-1 ${
-                isStockLimitReached 
-                  ? 'text-gray-400 cursor-not-allowed' 
-                  : 'hover:bg-gray-100 text-gray-900'
-              } font-bold`}
-              disabled={isStockLimitReached}
-            >
-              +
-            </button>
-          </div>
-          <span className="font-medium text-gray-700">
-            Total: ${(product.price * quantity).toFixed(2)}
+      <div className="p-6">
+        {/* Category badge */}
+        <div className="mb-3">
+          <span className={`inline-block px-2 py-1 text-xs font-medium ${getCategoryBadgeColor()} rounded-sm`}>
+            {product.category}
           </span>
         </div>
-      )}
-
-      {/* Show a message if quantity is at stock limit */}
-      {quantity > 0 && isStockLimitReached && (
-        <p className="mt-2 text-xs text-red-600 text-right">
-          Stock limit reached
-        </p>
-      )}
+        
+        {/* Product name and price */}
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-gray-900 mb-1">{product.name}</h3>
+          <div className="flex justify-between items-center">
+            <p className="text-xl font-bold text-gray-900">${product.price.toFixed(2)}</p>
+            <div className="flex items-center">
+              <span className="text-sm font-medium text-gray-600 mr-1">Stock:</span>
+              <span className={`text-sm font-bold ${getStockStatusColor()}`}>
+                {product.stock}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Add to invoice button or quantity controls */}
+        {quantity === 0 ? (
+          <button 
+            onClick={handleAddToInvoice}
+            className={`mt-2 flex w-full items-center justify-center rounded-none ${
+              isStockLimitReached 
+                ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                : 'bg-gray-800 hover:bg-gray-700 text-white'
+            } px-4 py-3 text-sm font-medium transition-colors`}
+            disabled={isStockLimitReached}
+          >
+            <span className="material-icons text-sm mr-2">receipt</span>
+            {isStockLimitReached ? 'Out of Stock' : 'Add to Invoice'}
+          </button>
+        ) : (
+          <div className="pt-3 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center border border-gray-200">
+                <button 
+                  onClick={handleDecreaseQuantity}
+                  className="px-3 py-1 hover:bg-gray-100 text-gray-900 font-medium"
+                >
+                  -
+                </button>
+                <span className="px-4 py-1 font-medium text-gray-900 border-l border-r border-gray-200">
+                  {quantity}
+                </span>
+                <button 
+                  onClick={handleIncreaseQuantity}
+                  className={`px-3 py-1 ${
+                    isStockLimitReached 
+                      ? 'text-gray-400 cursor-not-allowed' 
+                      : 'hover:bg-gray-100 text-gray-900'
+                  } font-medium`}
+                  disabled={isStockLimitReached}
+                >
+                  +
+                </button>
+              </div>
+              <span className="font-medium text-gray-700">
+                ${(product.price * quantity).toFixed(2)}
+              </span>
+            </div>
+            
+            {/* Stock limit warning */}
+            {isStockLimitReached && (
+              <p className="mt-2 text-xs text-red-600 text-right">
+                Stock limit reached
+              </p>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 } 
