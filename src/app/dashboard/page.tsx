@@ -89,6 +89,32 @@ export default function DashboardPage() {
   const stats = React.useMemo(() => {
     if (!isClient) return { totalSales: 0, totalOrders: 0, avgOrderValue: 0 };
 
+    // Get current month
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    // Filter invoices for current month only
+    const currentMonthInvoices = invoiceHistory.filter(invoice => {
+      const invoiceDate = new Date(invoice.date);
+      return invoiceDate.getMonth() === currentMonth && invoiceDate.getFullYear() === currentYear;
+    });
+
+    const totalSales = currentMonthInvoices.reduce((sum, invoice) => sum + invoice.total, 0);
+    const totalOrders = currentMonthInvoices.length;
+    const avgOrderValue = totalOrders ? totalSales / totalOrders : 0;
+
+    return {
+      totalSales: totalSales.toFixed(2),
+      totalOrders,
+      avgOrderValue: avgOrderValue.toFixed(2)
+    };
+  }, [invoiceHistory, isClient]);
+
+  // Calculate all time stats
+  const allTimeStats = React.useMemo(() => {
+    if (!isClient) return { totalSales: 0, totalOrders: 0, avgOrderValue: 0 };
+
     const totalSales = invoiceHistory.reduce((sum, invoice) => sum + invoice.total, 0);
     const totalOrders = invoiceHistory.length;
     const avgOrderValue = totalOrders ? totalSales / totalOrders : 0;
@@ -157,6 +183,13 @@ export default function DashboardPage() {
     },
   };
 
+  // Get current month name
+  const getCurrentMonthName = () => {
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                         'July', 'August', 'September', 'October', 'November', 'December'];
+    return monthNames[new Date().getMonth()];
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Full-width header */}
@@ -177,28 +210,31 @@ export default function DashboardPage() {
 
       {/* Content with proper padding */}
       <div className="container mx-auto px-4 pb-20 pt-2 flex-grow">
-        {/* Summary stats cards */}
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-3 mb-6">
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">TOTAL SALES</h3>
-            <p className={`${robotoMono.className} text-3xl font-bold text-gray-900`}>${stats.totalSales}</p>
-          </div>
-          
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">TOTAL ORDERS</h3>
-            <p className={`${robotoMono.className} text-3xl font-bold text-gray-900`}>{stats.totalOrders}</p>
-          </div>
-          
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">AVG ORDER VALUE</h3>
-            <p className={`${robotoMono.className} text-3xl font-bold text-gray-900`}>${stats.avgOrderValue}</p>
+        {/* Monthly Performance Stats - Prominently displayed at top */}
+        <div className="mb-6 bg-white p-6 rounded-lg shadow-md border border-gray-200">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Monthly Performance ({getCurrentMonthName()})</h2>
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+            <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
+              <h3 className="text-sm font-medium text-gray-600 mb-2">TOTAL SALES THIS MONTH</h3>
+              <p className={`${robotoMono.className} text-4xl font-bold text-gray-900`}>${stats.totalSales}</p>
+            </div>
+            
+            <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
+              <h3 className="text-sm font-medium text-gray-600 mb-2">ORDERS THIS MONTH</h3>
+              <p className={`${robotoMono.className} text-4xl font-bold text-gray-900`}>{stats.totalOrders}</p>
+            </div>
+            
+            <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
+              <h3 className="text-sm font-medium text-gray-600 mb-2">AVG ORDER VALUE</h3>
+              <p className={`${robotoMono.className} text-4xl font-bold text-gray-900`}>${stats.avgOrderValue}</p>
+            </div>
           </div>
         </div>
 
-        {/* Charts */}
+        {/* Top Restaurants by Sales & Order Stats */}
         <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 mb-6">
           {/* Restaurant Performance Chart */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Top Restaurants by Sales</h3>
             <div className="h-64">
               {isClient && restaurantSales.labels.length > 0 ? (
@@ -211,28 +247,49 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Monthly Sales Chart */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Monthly Sales</h3>
-            <div className="h-64">
-              {isClient && monthlySales.labels.length > 0 ? (
-                <Bar 
-                  data={barChartData} 
-                  options={barChartOptions}
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-gray-500">No data available</p>
-                </div>
-              )}
+          {/* Order Statistics */}
+          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">All-Time Statistics</h3>
+            <div className="grid grid-cols-1 gap-4 h-auto overflow-hidden">
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h4 className="text-sm font-medium text-gray-600 mb-1">TOTAL ORDERS</h4>
+                <p className={`${robotoMono.className} text-2xl font-bold text-gray-900`}>{allTimeStats.totalOrders}</p>
+              </div>
+              
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h4 className="text-sm font-medium text-gray-600 mb-1">TOTAL REVENUE</h4>
+                <p className={`${robotoMono.className} text-2xl font-bold text-gray-900`}>${allTimeStats.totalSales}</p>
+              </div>
+              
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h4 className="text-sm font-medium text-gray-600 mb-1">AVERAGE ORDER VALUE</h4>
+                <p className={`${robotoMono.className} text-2xl font-bold text-gray-900`}>${allTimeStats.avgOrderValue}</p>
+              </div>
             </div>
+          </div>
+        </div>
+
+        {/* Monthly Sales Chart */}
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 mb-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Monthly Sales Trend</h3>
+          <div className="h-80">
+            {isClient && monthlySales.labels.length > 0 ? (
+              <Bar 
+                data={barChartData} 
+                options={barChartOptions}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-gray-500">No data available</p>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Recent Activity & Quick Access */}
         <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
           {/* Recent Activity */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold text-gray-900">Recent Activity</h3>
               <Link 
@@ -264,35 +321,35 @@ export default function DashboardPage() {
           </div>
 
           {/* Quick Access */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Access</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              <Link href="/search" className="p-4 flex flex-col items-center justify-center bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              <Link href="/search" className="p-4 flex flex-col items-center justify-center bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
                 <span className="material-icons text-2xl text-gray-700 mb-2">search</span>
                 <span className="text-sm font-medium text-gray-900">Search</span>
               </Link>
               
-              <Link href="/restaurants" className="p-4 flex flex-col items-center justify-center bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              <Link href="/restaurants" className="p-4 flex flex-col items-center justify-center bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
                 <span className="material-icons text-2xl text-gray-700 mb-2">restaurant</span>
                 <span className="text-sm font-medium text-gray-900">Restaurants</span>
               </Link>
               
-              <Link href="/history" className="p-4 flex flex-col items-center justify-center bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              <Link href="/history" className="p-4 flex flex-col items-center justify-center bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
                 <span className="material-icons text-2xl text-gray-700 mb-2">history</span>
                 <span className="text-sm font-medium text-gray-900">History</span>
               </Link>
               
-              <Link href="/stock" className="p-4 flex flex-col items-center justify-center bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              <Link href="/stock" className="p-4 flex flex-col items-center justify-center bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
                 <span className="material-icons text-2xl text-gray-700 mb-2">inventory</span>
                 <span className="text-sm font-medium text-gray-900">Stock</span>
               </Link>
               
-              <Link href="/todo" className="p-4 flex flex-col items-center justify-center bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              <Link href="/todo" className="p-4 flex flex-col items-center justify-center bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
                 <span className="material-icons text-2xl text-gray-700 mb-2">assignment</span>
                 <span className="text-sm font-medium text-gray-900">To-Do</span>
               </Link>
               
-              <Link href="/invoices" className="p-4 flex flex-col items-center justify-center bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              <Link href="/invoices" className="p-4 flex flex-col items-center justify-center bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
                 <span className="material-icons text-2xl text-gray-700 mb-2">receipt</span>
                 <span className="text-sm font-medium text-gray-900">Invoices</span>
               </Link>
