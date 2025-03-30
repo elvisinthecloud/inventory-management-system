@@ -164,21 +164,19 @@ export default function StockManagementPage() {
   const applyAdjustment = (productId: number, isAdd: boolean) => {
     const adjustment = adjustments[productId] || 0;
     
-    if (adjustment <= 0) {
-      alert('Please enter a valid positive number');
-      return;
-    }
-    
     // Get current product
     const product = products.find(p => p.id === productId);
     if (!product) return;
     
+    // If adjustment is 0 or not set, use 1 as the default increment/decrement amount
+    const amountToAdjust = adjustment > 0 ? adjustment : 1;
+    
     // Calculate new stock value
     const newStock = isAdd 
-      ? product.stock + adjustment 
-      : Math.max(0, product.stock - adjustment);
+      ? product.stock + amountToAdjust 
+      : Math.max(0, product.stock - amountToAdjust);
       
-    console.log(`Adjusting stock for ${product.name}: ${product.stock} → ${newStock} (${isAdd ? 'adding' : 'subtracting'} ${adjustment})`);
+    console.log(`Adjusting stock for ${product.name}: ${product.stock} → ${newStock} (${isAdd ? 'adding' : 'subtracting'} ${amountToAdjust})`);
     
     // Update stock in context
     updateProductStock(productId, newStock);
@@ -201,13 +199,13 @@ export default function StockManagementPage() {
     localStorage.setItem('products', JSON.stringify(updatedProducts));
     console.log(`Saved updated stock to localStorage for product ${productId}`);
     
-    // Clear the adjustment input
-    setAdjustments({
-      ...adjustments,
-      [productId]: 0
-    });
-    
-    alert(`Stock ${isAdd ? 'added' : 'removed'} successfully!`);
+    // Clear the adjustment input only if we actually used the input value
+    if (adjustment > 0) {
+      setAdjustments({
+        ...adjustments,
+        [productId]: 0
+      });
+    }
   };
   
   // Filter products based on search and category
@@ -499,7 +497,7 @@ export default function StockManagementPage() {
                             min="0"
                             value={adjustments[product.id] || ''}
                             onChange={(e) => handleAdjustmentChange(product.id, e.target.value)}
-                            className="w-14 py-1 px-2 border-0 focus:ring-0 text-center text-sm"
+                            className="w-14 py-1 px-2 border-0 focus:ring-0 text-center text-sm text-black dark:text-black !text-black font-medium"
                             placeholder="Qty"
                           />
                         </div>
@@ -507,7 +505,7 @@ export default function StockManagementPage() {
                           <button
                             onClick={() => applyAdjustment(product.id, true)}
                             className="p-1 rounded-md text-green-600 hover:text-green-800 hover:bg-green-50"
-                            title="Add to stock"
+                            title={adjustments[product.id] > 0 ? `Add ${adjustments[product.id]} to stock` : "Add 1 to stock"}
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -516,7 +514,7 @@ export default function StockManagementPage() {
                           <button
                             onClick={() => applyAdjustment(product.id, false)}
                             className="p-1 rounded-md text-red-600 hover:text-red-800 hover:bg-red-50"
-                            title="Remove from stock"
+                            title={adjustments[product.id] > 0 ? `Remove ${adjustments[product.id]} from stock` : "Remove 1 from stock"}
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
