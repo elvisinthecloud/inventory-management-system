@@ -19,7 +19,7 @@ export default function PageHeader({ title, withAction, fullWidth = false }: Pag
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center mb-3 sm:mb-0">
             {/* Square, professional header with a subtle border */}
-            <h1 className={`${robotoMono.className} text-xl sm:text-2xl uppercase tracking-wide text-white border-l-4 border-gray-500 pl-4`}>
+            <h1 className={`${robotoMono.className} text-xl sm:text-2xl uppercase tracking-wide text-white`}>
               {title}
             </h1>
           </div>

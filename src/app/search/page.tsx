@@ -5,6 +5,7 @@ import { Geist, Roboto_Mono } from "next/font/google";
 import SearchBar from '@/app/components/SearchBar';
 import CategoryGrid from '@/app/components/CategoryGrid';
 import { useInvoice } from '@/app/context/InvoiceContext';
+import PageHeader from '@/app/components/PageHeader';
 
 const geistSans = Geist({
   weight: '400',
@@ -177,25 +178,20 @@ export default function SearchPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Professional header */}
-      <div className="mb-8">
-        <div className="bg-gray-800 px-6 py-4 shadow-md">
-          <div className="flex justify-between items-center">
-            <h1 className={`${robotoMono.className} text-2xl uppercase tracking-wide text-white border-l-4 border-gray-500 pl-4`}>
-              Product Catalog
-            </h1>
-            <div className="text-gray-300 text-sm font-medium">
-              {new Date().toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'short', day: 'numeric'})}
-            </div>
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      {/* Full-width header */}
+      <PageHeader 
+        title="PRODUCT CATALOG" 
+        fullWidth={true}
+        withAction={
+          <div className="text-gray-300 text-sm font-medium">
+            {new Date().toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'short', day: 'numeric'})}
           </div>
-        </div>
-        {/* Subtle divider line */}
-        <div className="h-1 bg-gradient-to-r from-gray-700 to-gray-600"></div>
-      </div>
+        }
+      />
       
       {/* Main content */}
-      <div className="container mx-auto max-w-6xl px-4 py-6">
+      <div className="container mx-auto max-w-6xl px-4 pb-20 pt-2 flex-grow">
         {/* Search section with modern styling */}
         <div className="mb-12">
           <div className="max-w-lg mx-auto mb-4">
