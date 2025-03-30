@@ -113,7 +113,7 @@ export default function SearchResults() {
       </div>
       
       {/* Main content */}
-      <div className="container mx-auto max-w-6xl px-4 py-6">
+      <div className="container mx-auto max-w-6xl px-4 py-6 pb-28">
         {/* Search Bar */}
         <div className="mb-12">
           <SearchBar placeholder="Refine your search..." />

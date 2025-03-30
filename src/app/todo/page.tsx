@@ -156,7 +156,7 @@ export default function TodoPage() {
       />
 
       {/* Content with proper padding */}
-      <div className="container mx-auto px-4 pb-20 pt-2 flex-grow">
+      <div className="container mx-auto px-4 pb-28 pt-2 flex-grow">
         {/* Stats Cards */}
         <div className="grid gap-4 grid-cols-1 md:grid-cols-4 mb-6">
           <div className="bg-white p-6 rounded-lg shadow-md">

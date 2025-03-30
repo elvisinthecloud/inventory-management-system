@@ -130,7 +130,7 @@ export default function CategoryPage() {
       </div>
       
       {/* Main content */}
-      <div className="container mx-auto max-w-6xl px-4 py-6">
+      <div className="container mx-auto max-w-6xl px-4 py-6 pb-28">
         {/* Back link and search bar */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
           <Link 

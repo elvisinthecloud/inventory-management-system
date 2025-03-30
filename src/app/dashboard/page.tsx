@@ -209,7 +209,7 @@ export default function DashboardPage() {
       />
 
       {/* Content with proper padding */}
-      <div className="container mx-auto px-4 pb-20 pt-2 flex-grow">
+      <div className="container mx-auto px-4 pb-28 pt-2 flex-grow">
         {/* Monthly Performance Stats - Prominently displayed at top */}
         <div className="mb-6 bg-white p-6 rounded-lg shadow-md border border-gray-200">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Monthly Performance ({getCurrentMonthName()})</h2>

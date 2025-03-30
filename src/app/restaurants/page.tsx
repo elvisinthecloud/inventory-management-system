@@ -12,7 +12,7 @@ export default function RestaurantsPage() {
       />
       
       {/* Content with proper padding */}
-      <div className="container mx-auto px-4 pb-20 pt-2 flex-grow">
+      <div className="container mx-auto px-4 pb-28 pt-2 flex-grow">
         <p className="mb-6 text-gray-700">
           Choose a restaurant to start your order. Your cart will be tied to the selected restaurant.
         </p>

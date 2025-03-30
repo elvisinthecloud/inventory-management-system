@@ -300,7 +300,7 @@ export default function StockManagementPage() {
       />
 
       {/* Content with proper padding */}
-      <div className="container mx-auto px-4 pb-20 pt-2 flex-grow">
+      <div className="container mx-auto px-4 pb-28 pt-2 flex-grow">
         {/* Top Action Bar */}
         <div className="mb-6 flex justify-between items-center">
           <button 

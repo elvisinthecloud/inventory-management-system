@@ -242,7 +242,7 @@ export default function HistoryPage() {
       />
 
       {/* Content with proper padding */}
-      <div className="container mx-auto px-4 pb-20 pt-2 flex-grow">
+      <div className="container mx-auto px-4 pb-28 pt-2 flex-grow">
         {invoiceHistory.length === 0 ? (
           <div className="my-6 rounded-lg border border-gray-300 bg-white p-8 text-center shadow-md">
             <span className="material-icons mb-4 text-6xl text-gray-400">history</span>

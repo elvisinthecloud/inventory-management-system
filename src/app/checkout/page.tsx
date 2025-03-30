@@ -350,7 +350,7 @@ export default function CheckoutPage() {
       />
 
       {/* Content with proper padding */}
-      <div className="container mx-auto px-4 pb-20 pt-2 flex-grow">
+      <div className="container mx-auto px-4 pb-28 pt-2 flex-grow">
         {/* Invoice Summary */}
         <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-md sm:p-6">
           {/* Invoice Header */}

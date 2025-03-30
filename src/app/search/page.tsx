@@ -191,7 +191,7 @@ export default function SearchPage() {
       />
       
       {/* Main content */}
-      <div className="container mx-auto max-w-6xl px-4 pb-20 pt-2 flex-grow">
+      <div className="container mx-auto max-w-6xl px-4 pb-28 pt-2 flex-grow">
         {/* Search section with modern styling */}
         <div className="mb-12">
           <div className="max-w-lg mx-auto mb-4">
