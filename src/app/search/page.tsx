@@ -5,7 +5,6 @@ import { Geist, Roboto_Mono } from "next/font/google";
 import SearchBar from '@/app/components/SearchBar';
 import CategoryGrid from '@/app/components/CategoryGrid';
 import { useInvoice } from '@/app/context/InvoiceContext';
-import PageHeader from '@/app/components/PageHeader';
 
 const geistSans = Geist({
   weight: '400',
@@ -178,16 +177,63 @@ export default function SearchPage() {
   }, []);
 
   return (
-    <div className="container mx-auto max-w-6xl px-4 py-6">
-      {/* Search Bar - made wider */}
-      <div className="mx-auto max-w-4xl mb-12">
-        <SearchBar placeholder="Search for products..." />
+    <div className="min-h-screen bg-gray-50">
+      {/* Professional header */}
+      <div className="mb-8">
+        <div className="bg-gray-800 px-6 py-4 shadow-md">
+          <div className="flex justify-between items-center">
+            <h1 className={`${robotoMono.className} text-2xl uppercase tracking-wide text-white border-l-4 border-gray-500 pl-4`}>
+              Product Catalog
+            </h1>
+            <div className="text-gray-300 text-sm font-medium">
+              {new Date().toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'short', day: 'numeric'})}
+            </div>
+          </div>
+        </div>
+        {/* Subtle divider line */}
+        <div className="h-1 bg-gradient-to-r from-gray-700 to-gray-600"></div>
       </div>
       
-      {/* Categories Section */}
-      <div className="mt-4">
-        <PageHeader title="CATEGORIES" />
-        <CategoryGrid categories={categories} />
+      {/* Main content */}
+      <div className="container mx-auto max-w-6xl px-4 py-6">
+        {/* Search section with modern styling */}
+        <div className="mb-12">
+          <div className="max-w-lg mx-auto mb-4">
+            <h2 className={`${robotoMono.className} text-lg font-medium text-gray-800 mb-3`}>FIND PRODUCTS</h2>
+            <p className="text-sm text-gray-600 mb-6">Search our inventory by product name or browse by category</p>
+          </div>
+          <SearchBar placeholder="Search for products..." />
+        </div>
+        
+        {/* Categories Section */}
+        <div className="mt-10">
+          <div className="mb-8">
+            <h2 className={`${robotoMono.className} text-lg font-medium text-gray-800 mb-2`}>BROWSE BY CATEGORY</h2>
+            <div className="h-0.5 w-20 bg-gray-800 mb-6"></div>
+            <p className="text-sm text-gray-600 mb-6">Select a category to view all related products</p>
+          </div>
+          <div className="px-2 md:px-4">
+            <CategoryGrid categories={categories} />
+          </div>
+        </div>
+        
+        {/* Quick info section */}
+        <div className="mt-16 bg-white border border-gray-200 p-6 shadow-sm">
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex-1">
+              <h3 className="text-lg font-medium text-gray-800 mb-3">Need Help Finding Something?</h3>
+              <p className="text-sm text-gray-600">Our inventory is constantly updated. If you can't find what you're looking for, please contact our support team.</p>
+            </div>
+            <div className="flex items-end">
+              <button 
+                onClick={() => window.history.back()}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                Go Back
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

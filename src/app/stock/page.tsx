@@ -354,10 +354,10 @@ export default function StockManagementPage() {
       </div>
       
       {/* Search and Filter Controls - Update search bar background to white with better contrast */}
-      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div>
-          <label htmlFor="search" className="block text-sm font-medium text-gray-700">Search Products</label>
-          <div className="mt-1 relative bg-white rounded-md shadow-md border border-gray-300">
+      <div className="mb-6 space-y-6">
+        <div className="w-full">
+          <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">Search Products</label>
+          <div className="relative bg-white rounded-md shadow-md border border-gray-300">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg className="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
@@ -367,31 +367,73 @@ export default function StockManagementPage() {
               type="text"
               id="search"
               placeholder="Search by name or category"
-              className="pl-10 mt-0 block w-full rounded-md border-0 bg-white px-3 py-2.5 ring-0 focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
+              className="pl-10 mt-0 block w-full rounded-md border-0 bg-white px-3 py-2.5 ring-0 focus:ring-2 focus:ring-gray-500 text-gray-900 font-medium"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
         
-        <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700">Filter by Category</label>
-          <div className="mt-1 relative">
-            <select
-              id="category"
-              className="mt-0 block w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 shadow-md focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium appearance-none"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
+        <div className="w-full">
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700">Filter by Category</label>
+            {selectedCategory && (
+              <button 
+                onClick={() => setSelectedCategory('')}
+                className="text-xs text-gray-500 hover:text-gray-700 flex items-center"
+              >
+                Clear Filter
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setSelectedCategory('')}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                selectedCategory === '' 
+                  ? 'bg-gray-800 text-white shadow-md' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
             >
-              <option value="">All Categories</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-              <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
+              All Categories
+            </button>
+            
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  selectedCategory === category 
+                    ? 'bg-gray-800 text-white shadow-md' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+          
+          {/* Category stats */}
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
+              <div className="text-xs text-gray-500 mb-1">Total Categories</div>
+              <div className="text-lg font-bold text-gray-800">{categories.length}</div>
+            </div>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
+              <div className="text-xs text-gray-500 mb-1">In Stock</div>
+              <div className="text-lg font-bold text-green-600">{inStockProducts}</div>
+            </div>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
+              <div className="text-xs text-gray-500 mb-1">Low Stock</div>
+              <div className="text-lg font-bold text-amber-600">{lowStockProducts}</div>
+            </div>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
+              <div className="text-xs text-gray-500 mb-1">Out of Stock</div>
+              <div className="text-lg font-bold text-red-600">{outOfStockProducts}</div>
             </div>
           </div>
         </div>
