@@ -35,6 +35,21 @@ export interface Product {
   stock: number;
 }
 
+// ClientOnly component to prevent hydration errors
+function ClientOnly({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
+  return <>{children}</>;
+}
+
 // Initial default stock data
 const defaultStockData = {
   1: 15, // Cinnamon
@@ -228,20 +243,22 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
     
     // Get latest stock from localStorage (the source of truth)
     let latestStock = contextStock;
-    const productsJson = localStorage.getItem('products');
-    if (productsJson) {
-      try {
-        const products = JSON.parse(productsJson);
-        const product = products.find((p: Product) => p.id === item.id);
-        if (product) {
-          latestStock = product.stock;
-          // Update context stock if different
-          if (latestStock !== contextStock) {
-            updateProductStock(item.id, latestStock);
+    if (typeof window !== 'undefined') {
+      const productsJson = localStorage.getItem('products');
+      if (productsJson) {
+        try {
+          const products = JSON.parse(productsJson);
+          const product = products.find((p: Product) => p.id === item.id);
+          if (product) {
+            latestStock = product.stock;
+            // Update context stock if different
+            if (latestStock !== contextStock) {
+              updateProductStock(item.id, latestStock);
+            }
           }
+        } catch (error) {
+          console.error("Error checking latest stock:", error);
         }
-      } catch (error) {
-        console.error("Error checking latest stock:", error);
       }
     }
     
@@ -298,20 +315,22 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
     
     // Get latest stock from localStorage (the source of truth)
     let latestStock = getProductStock(itemId);
-    const productsJson = localStorage.getItem('products');
-    if (productsJson) {
-      try {
-        const products = JSON.parse(productsJson);
-        const product = products.find((p: Product) => p.id === itemId);
-        if (product) {
-          latestStock = product.stock;
-          // Update context stock if different
-          if (latestStock !== getProductStock(itemId)) {
-            updateProductStock(itemId, latestStock);
+    if (typeof window !== 'undefined') {
+      const productsJson = localStorage.getItem('products');
+      if (productsJson) {
+        try {
+          const products = JSON.parse(productsJson);
+          const product = products.find((p: Product) => p.id === itemId);
+          if (product) {
+            latestStock = product.stock;
+            // Update context stock if different
+            if (latestStock !== getProductStock(itemId)) {
+              updateProductStock(itemId, latestStock);
+            }
           }
+        } catch (error) {
+          console.error("Error checking latest stock:", error);
         }
-      } catch (error) {
-        console.error("Error checking latest stock:", error);
       }
     }
     
@@ -407,7 +426,7 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
   const setRestaurant = (restaurant: Restaurant) => {
     // If changing restaurant, clear the invoice first
     if (invoice.restaurant && invoice.restaurant.id !== restaurant.id && invoice.items.length > 0) {
-      if (confirm('Changing restaurant will clear your current invoice. Continue?')) {
+      if (typeof window !== 'undefined' && window.confirm('Changing restaurant will clear your current invoice. Continue?')) {
         setInvoice({ items: [], credits: [], restaurant });
       }
     } else {
@@ -423,27 +442,32 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
     setInvoiceHistory(prev => [invoiceItem, ...prev]);
   };
 
-  // Provide the invoice context to children
+  // Create context value object
+  const contextValue = {
+    invoice,
+    addItem,
+    removeItem,
+    updateQuantity,
+    addCredit,
+    removeCredit,
+    updateCreditQuantity,
+    clearInvoice,
+    setRestaurant,
+    totalItems,
+    subtotal,
+    creditsTotal,
+    getProductStock,
+    updateProductStock,
+    invoiceHistory,
+    saveInvoiceToHistory
+  };
+
+  // Provide the invoice context to children, but only render the actual content on the client
   return (
-    <InvoiceContext.Provider value={{
-      invoice,
-      addItem,
-      removeItem,
-      updateQuantity,
-      addCredit,
-      removeCredit,
-      updateCreditQuantity,
-      clearInvoice,
-      setRestaurant,
-      totalItems,
-      subtotal,
-      creditsTotal,
-      getProductStock,
-      updateProductStock,
-      invoiceHistory,
-      saveInvoiceToHistory
-    }}>
-      {children}
+    <InvoiceContext.Provider value={contextValue}>
+      <ClientOnly>
+        {children}
+      </ClientOnly>
     </InvoiceContext.Provider>
   );
 }; 

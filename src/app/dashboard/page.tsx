@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useInvoice } from '../context/InvoiceContext';
 import PageHeader from '@/app/components/PageHeader';
 import { Roboto_Mono } from "next/font/google";
+import UpcomingTasksBadge from '@/app/components/UpcomingTasksBadge';
 
 // We'll use a simple chart library
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
@@ -197,14 +198,17 @@ export default function DashboardPage() {
         title="DASHBOARD" 
         fullWidth={true}
         withAction={
-          <Link
-            href="/todo" 
-            className="flex items-center rounded-md bg-gray-700 px-3 py-2 text-gray-200 hover:bg-gray-600"
-          >
-            <span className="material-icons mr-1">assignment</span>
-            <span className="hidden sm:inline">To-Do List</span>
-            <span className="sm:hidden">To-Do</span>
-          </Link>
+          <div className="flex items-center">
+            <Link
+              href="/todo" 
+              className="flex items-center rounded-md bg-gray-700 px-3 py-2 text-gray-200 hover:bg-gray-600"
+            >
+              <span className="material-icons mr-1">assignment</span>
+              <span className="hidden sm:inline">To-Do List</span>
+              <span className="sm:hidden">To-Do</span>
+            </Link>
+            <UpcomingTasksBadge />
+          </div>
         }
       />
 
@@ -259,8 +263,8 @@ export default function DashboardPage() {
               <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <h4 className="text-sm font-medium text-gray-600 mb-1">TOTAL REVENUE</h4>
                 <p className={`${robotoMono.className} text-2xl font-bold text-gray-900`}>${allTimeStats.totalSales}</p>
-      </div>
-      
+              </div>
+              
               <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <h4 className="text-sm font-medium text-gray-600 mb-1">AVERAGE ORDER VALUE</h4>
                 <p className={`${robotoMono.className} text-2xl font-bold text-gray-900`}>${allTimeStats.avgOrderValue}</p>
@@ -281,8 +285,8 @@ export default function DashboardPage() {
             ) : (
               <div className="flex items-center justify-center h-full">
                 <p className="text-gray-500">No data available</p>
-            </div>
-          )}
+              </div>
+            )}
           </div>
         </div>
 

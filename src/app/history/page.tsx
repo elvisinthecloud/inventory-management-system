@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useInvoice } from '../context/InvoiceContext';
 import { Roboto_Mono } from "next/font/google";
 import Link from 'next/link';
@@ -10,6 +10,21 @@ const robotoMono = Roboto_Mono({
   weight: '700',
   subsets: ['latin'],
 });
+
+// ClientOnly component to prevent hydration errors
+function ClientOnly({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
+  return <>{children}</>;
+}
 
 export default function HistoryPage() {
   const { invoiceHistory } = useInvoice();
@@ -243,102 +258,104 @@ export default function HistoryPage() {
 
       {/* Content with proper padding */}
       <div className="container mx-auto px-4 pb-28 pt-2 flex-grow">
-        {invoiceHistory.length === 0 ? (
-          <div className="my-6 rounded-lg border border-gray-300 bg-white p-8 text-center shadow-md">
-            <span className="material-icons mb-4 text-6xl text-gray-400">history</span>
-            <h2 className="mb-4 text-2xl font-bold text-gray-800">No Invoice History</h2>
-            <p className="mb-8 text-gray-600">You haven't created any invoices yet.</p>
-            <Link 
-              href="/restaurants" 
-              className="inline-flex items-center justify-center rounded-md bg-gray-800 px-6 py-3 text-white hover:bg-gray-700"
-            >
-              <span className="material-icons mr-2">add_circle</span>
-              Create New Invoice
-            </Link>
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
-            {invoiceHistory.map((invoice, index) => (
-              <div key={`${invoice.id}-${index}`} className="rounded-lg border border-gray-300 bg-white p-4 shadow-md sm:p-6">
-                <div className="mb-4 flex justify-between">
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">Invoice #{invoice.id}</h3>
-                    <p className="text-sm text-gray-600">{formatDate(invoice.date)}</p>
-                  </div>
-                  <button
-                    onClick={() => handleDownloadPDF(invoice)}
-                    className="flex items-center rounded-md bg-gray-800 px-3 py-1 text-white hover:bg-gray-700"
-                  >
-                    <span className="material-icons mr-1">download</span>
-                    <span>PDF</span>
-                  </button>
-                </div>
-                
-                <div className="mb-3">
-                  <h4 className="text-md font-bold text-gray-900">{invoice.restaurant.name}</h4>
-                  <p className="text-sm text-gray-700">{invoice.restaurant.cuisine}</p>
-                </div>
-                
-                <div className="mb-4 rounded-md bg-gray-50 p-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-800">Items:</span>
-                    <span className="font-medium text-gray-900">{invoice.items.length}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-800">Subtotal:</span>
-                    <span className="font-medium text-gray-900">${invoice.subtotal.toFixed(2)}</span>
+        <ClientOnly>
+          {invoiceHistory.length === 0 ? (
+            <div className="my-6 rounded-lg border border-gray-300 bg-white p-8 text-center shadow-md">
+              <span className="material-icons mb-4 text-6xl text-gray-400">history</span>
+              <h2 className="mb-4 text-2xl font-bold text-gray-800">No Invoice History</h2>
+              <p className="mb-8 text-gray-600">You haven't created any invoices yet.</p>
+              <Link 
+                href="/restaurants" 
+                className="inline-flex items-center justify-center rounded-md bg-gray-800 px-6 py-3 text-white hover:bg-gray-700"
+              >
+                <span className="material-icons mr-2">add_circle</span>
+                Create New Invoice
+              </Link>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+              {invoiceHistory.map((invoice, index) => (
+                <div key={`${invoice.id}-${index}`} className="rounded-lg border border-gray-300 bg-white p-4 shadow-md sm:p-6">
+                  <div className="mb-4 flex justify-between">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">Invoice #{invoice.id}</h3>
+                      <p className="text-sm text-gray-600">{formatDate(invoice.date)}</p>
+                    </div>
+                    <button
+                      onClick={() => handleDownloadPDF(invoice)}
+                      className="flex items-center rounded-md bg-gray-800 px-3 py-1 text-white hover:bg-gray-700"
+                    >
+                      <span className="material-icons mr-1">download</span>
+                      <span>PDF</span>
+                    </button>
                   </div>
                   
-                  {/* Show credits if present */}
-                  {invoice.credits && invoice.credits.length > 0 && (
+                  <div className="mb-3">
+                    <h4 className="text-md font-bold text-gray-900">{invoice.restaurant.name}</h4>
+                    <p className="text-sm text-gray-700">{invoice.restaurant.cuisine}</p>
+                  </div>
+                  
+                  <div className="mb-4 rounded-md bg-gray-50 p-3">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-800">Credits:</span>
-                      <span className="font-medium text-green-600">
-                        -${Math.abs(invoice.credits.reduce(
-                          (total, credit) => total + (credit.price * credit.quantity), 
-                          0
-                        )).toFixed(2)}
-                      </span>
+                      <span className="text-gray-800">Items:</span>
+                      <span className="font-medium text-gray-900">{invoice.items.length}</span>
                     </div>
-                  )}
-                  
-                  <div className="mt-2 border-t border-gray-200 pt-2 font-bold">
-                    <div className="flex justify-between">
-                      <span className="text-gray-900">Total:</span>
-                      <span className="text-gray-900">${invoice.total.toFixed(2)}</span>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-800">Subtotal:</span>
+                      <span className="font-medium text-gray-900">${invoice.subtotal.toFixed(2)}</span>
+                    </div>
+                    
+                    {/* Show credits if present */}
+                    {invoice.credits && invoice.credits.length > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-800">Credits:</span>
+                        <span className="font-medium text-green-600">
+                          -${Math.abs(invoice.credits.reduce(
+                            (total, credit) => total + (credit.price * credit.quantity), 
+                            0
+                          )).toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    
+                    <div className="mt-2 border-t border-gray-200 pt-2 font-bold">
+                      <div className="flex justify-between">
+                        <span className="text-gray-900">Total:</span>
+                        <span className="text-gray-900">${invoice.total.toFixed(2)}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="text-sm text-gray-700">
-                  {/* Show items */}
-                  {invoice.items.slice(0, 3).map((item: any, i: number) => (
-                    <div key={i} className="mb-1">
-                      {item.quantity} × {item.name}
-                    </div>
-                  ))}
-                  {invoice.items.length > 3 && (
-                    <div className="text-gray-600">
-                      +{invoice.items.length - 3} more items
-                    </div>
-                  )}
                   
-                  {/* Show credits */}
-                  {invoice.credits && invoice.credits.length > 0 && (
-                    <div className="mt-2 border-t border-gray-200 pt-2">
-                      <div className="text-sm font-medium text-green-600">Credits:</div>
-                      {invoice.credits.map((credit: any, i: number) => (
-                        <div key={i} className="mb-1 text-green-600">
-                          {credit.quantity} × {credit.name} (-${Math.abs(credit.price).toFixed(2)})
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <div className="text-sm text-gray-700">
+                    {/* Show items */}
+                    {invoice.items.slice(0, 3).map((item: any, i: number) => (
+                      <div key={i} className="mb-1">
+                        {item.quantity} × {item.name}
+                      </div>
+                    ))}
+                    {invoice.items.length > 3 && (
+                      <div className="text-gray-600">
+                        +{invoice.items.length - 3} more items
+                      </div>
+                    )}
+                    
+                    {/* Show credits */}
+                    {invoice.credits && invoice.credits.length > 0 && (
+                      <div className="mt-2 border-t border-gray-200 pt-2">
+                        <div className="text-sm font-medium text-green-600">Credits:</div>
+                        {invoice.credits.map((credit: any, i: number) => (
+                          <div key={i} className="mb-1 text-green-600">
+                            {credit.quantity} × {credit.name} (-${Math.abs(credit.price).toFixed(2)})
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </ClientOnly>
       </div>
     </div>
   );
