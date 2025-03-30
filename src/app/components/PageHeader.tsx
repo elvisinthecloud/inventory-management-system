@@ -9,25 +9,28 @@ const robotoMono = Roboto_Mono({
 interface PageHeaderProps {
   title: string;
   withAction?: React.ReactNode;
+  fullWidth?: boolean;
 }
 
-export default function PageHeader({ title, withAction }: PageHeaderProps) {
+export default function PageHeader({ title, withAction, fullWidth = false }: PageHeaderProps) {
   return (
-    <div className="mb-8">
-      <div className="flex items-center justify-between bg-gray-800 px-6 py-4 shadow-md">
-        <div className="flex items-center">
-          {/* Square, professional header with a subtle border */}
-          <h1 className={`${robotoMono.className} text-2xl uppercase tracking-wide text-white border-l-4 border-gray-500 pl-4`}>
-            {title}
-          </h1>
-        </div>
-        
-        {/* Action button area */}
-        {withAction && (
-          <div className="ml-4">
-            {withAction}
+    <div className={`${fullWidth ? '-mx-4 sm:-mx-6 md:-mx-8 lg:-mx-12' : ''} mb-8`}>
+      <div className="px-6 py-5 bg-gray-800 shadow-lg">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center mb-3 sm:mb-0">
+            {/* Square, professional header with a subtle border */}
+            <h1 className={`${robotoMono.className} text-xl sm:text-2xl uppercase tracking-wide text-white border-l-4 border-gray-500 pl-4`}>
+              {title}
+            </h1>
           </div>
-        )}
+          
+          {/* Action button area */}
+          {withAction && (
+            <div className="sm:ml-4">
+              {withAction}
+            </div>
+          )}
+        </div>
       </div>
       
       {/* Subtle divider line */}

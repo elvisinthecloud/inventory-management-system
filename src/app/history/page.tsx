@@ -159,13 +159,15 @@ export default function HistoryPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 pb-20 pt-6">
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      {/* Full-width header */}
       <PageHeader 
         title="INVOICE HISTORY" 
+        fullWidth={true}
         withAction={
           <Link 
             href="/restaurants" 
-            className="flex items-center text-cyan-300 hover:text-cyan-200 font-semibold transition-colors duration-150"
+            className="flex items-center text-gray-300 hover:text-white font-semibold transition-colors duration-150"
           >
             <span className="material-icons mr-1">add</span>
             <span>New Invoice</span>
@@ -173,75 +175,78 @@ export default function HistoryPage() {
         }
       />
 
-      {invoiceHistory.length === 0 ? (
-        <div className="my-12 rounded-lg border border-gray-300 bg-white p-8 text-center shadow-md">
-          <span className="material-icons mb-4 text-6xl text-gray-400">history</span>
-          <h2 className="mb-4 text-2xl font-bold text-gray-800">No Invoice History</h2>
-          <p className="mb-8 text-gray-600">You haven't created any invoices yet.</p>
-          <Link 
-            href="/restaurants" 
-            className="inline-flex items-center justify-center rounded-md bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
-          >
-            <span className="material-icons mr-2">add_circle</span>
-            Create New Invoice
-          </Link>
-        </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2">
-          {invoiceHistory.map((invoice, index) => (
-            <div key={`${invoice.id}-${index}`} className="rounded-lg border border-gray-300 bg-white p-4 shadow-md sm:p-6">
-              <div className="mb-4 flex justify-between">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">Invoice #{invoice.id}</h3>
-                  <p className="text-sm text-gray-600">{invoice.date}</p>
+      {/* Content with proper padding */}
+      <div className="container mx-auto px-4 pb-20 pt-2 flex-grow">
+        {invoiceHistory.length === 0 ? (
+          <div className="my-6 rounded-lg border border-gray-300 bg-white p-8 text-center shadow-md">
+            <span className="material-icons mb-4 text-6xl text-gray-400">history</span>
+            <h2 className="mb-4 text-2xl font-bold text-gray-800">No Invoice History</h2>
+            <p className="mb-8 text-gray-600">You haven't created any invoices yet.</p>
+            <Link 
+              href="/restaurants" 
+              className="inline-flex items-center justify-center rounded-md bg-gray-800 px-6 py-3 text-white hover:bg-gray-700"
+            >
+              <span className="material-icons mr-2">add_circle</span>
+              Create New Invoice
+            </Link>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+            {invoiceHistory.map((invoice, index) => (
+              <div key={`${invoice.id}-${index}`} className="rounded-lg border border-gray-300 bg-white p-4 shadow-md sm:p-6">
+                <div className="mb-4 flex justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">Invoice #{invoice.id}</h3>
+                    <p className="text-sm text-gray-600">{formatDate(invoice.date)}</p>
+                  </div>
+                  <button
+                    onClick={() => handleDownloadPDF(invoice)}
+                    className="flex items-center rounded-md bg-gray-800 px-3 py-1 text-white hover:bg-gray-700"
+                  >
+                    <span className="material-icons mr-1">download</span>
+                    <span>PDF</span>
+                  </button>
                 </div>
-                <button
-                  onClick={() => handleDownloadPDF(invoice)}
-                  className="flex items-center rounded-md bg-green-600 px-3 py-1 text-white hover:bg-green-700"
-                >
-                  <span className="material-icons mr-1">download</span>
-                  <span>PDF</span>
-                </button>
-              </div>
-              
-              <div className="mb-3">
-                <h4 className="text-md font-bold text-gray-700">{invoice.restaurant.name}</h4>
-                <p className="text-sm text-gray-600">{invoice.restaurant.cuisine}</p>
-              </div>
-              
-              <div className="mb-4 rounded-md bg-gray-50 p-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Items:</span>
-                  <span className="font-medium">{invoice.items.length}</span>
+                
+                <div className="mb-3">
+                  <h4 className="text-md font-bold text-gray-900">{invoice.restaurant.name}</h4>
+                  <p className="text-sm text-gray-700">{invoice.restaurant.cuisine}</p>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Subtotal:</span>
-                  <span className="font-medium">${invoice.subtotal.toFixed(2)}</span>
-                </div>
-                <div className="mt-2 border-t border-gray-200 pt-2 font-bold">
-                  <div className="flex justify-between">
-                    <span>Total:</span>
-                    <span>${invoice.total.toFixed(2)}</span>
+                
+                <div className="mb-4 rounded-md bg-gray-50 p-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-800">Items:</span>
+                    <span className="font-medium text-gray-900">{invoice.items.length}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-800">Subtotal:</span>
+                    <span className="font-medium text-gray-900">${invoice.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="mt-2 border-t border-gray-200 pt-2 font-bold">
+                    <div className="flex justify-between">
+                      <span className="text-gray-900">Total:</span>
+                      <span className="text-gray-900">${invoice.total.toFixed(2)}</span>
+                    </div>
                   </div>
                 </div>
+                
+                <div className="text-sm text-gray-700">
+                  {invoice.items.slice(0, 3).map((item: any, i: number) => (
+                    <div key={i} className="mb-1">
+                      {item.quantity} × {item.name}
+                    </div>
+                  ))}
+                  {invoice.items.length > 3 && (
+                    <div className="text-gray-600">
+                      +{invoice.items.length - 3} more items
+                    </div>
+                  )}
+                </div>
               </div>
-              
-              <div className="text-sm text-gray-500">
-                {invoice.items.slice(0, 3).map((item: any, i: number) => (
-                  <div key={i} className="mb-1">
-                    {item.quantity} × {item.name}
-                  </div>
-                ))}
-                {invoice.items.length > 3 && (
-                  <div className="text-gray-400">
-                    +{invoice.items.length - 3} more items
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 } 
