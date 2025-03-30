@@ -104,7 +104,7 @@ export default function InvoicesPage() {
           <p className="mb-8 text-gray-600">You need to select a restaurant first to create an invoice.</p>
           <Link 
             href="/restaurants" 
-            className="inline-flex items-center justify-center rounded-md bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
+            className="inline-flex items-center justify-center rounded-md bg-gray-800 px-6 py-3 text-white hover:bg-gray-700"
           >
             <span className="material-icons mr-2">restaurant</span>
             Select Restaurant
@@ -119,7 +119,7 @@ export default function InvoicesPage() {
           <p className="mb-8 text-gray-600">Your invoice is empty. Add some items to your invoice.</p>
           <Link 
             href="/search" 
-            className="inline-flex items-center justify-center rounded-md bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
+            className="inline-flex items-center justify-center rounded-md bg-gray-800 px-6 py-3 text-white hover:bg-gray-700"
           >
             <span className="material-icons mr-2">search</span>
             Browse Items
@@ -233,7 +233,7 @@ export default function InvoicesPage() {
             </button>
             <button
               onClick={handleGenerateInvoice}
-              className="flex items-center justify-center rounded-md bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 font-bold"
+              className="flex items-center justify-center rounded-md bg-gray-800 px-6 py-3 text-white hover:bg-gray-700 font-bold"
             >
               <span className="material-icons mr-2">receipt</span>
               Generate Invoice

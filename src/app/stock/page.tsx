@@ -283,16 +283,20 @@ export default function StockManagementPage() {
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-6">
-      {/* Modern sleek header bar with gradient and shadow */}
-      <div className="mb-8 bg-gradient-to-r from-indigo-600 to-blue-700 rounded-lg shadow-lg overflow-hidden">
-        <div className="px-6 py-5 flex justify-between items-center">
-          <h1 className={`${robotoMono.className} text-2xl text-white font-bold`}>
-            Inventory Dashboard
-          </h1>
-          <div className="text-white text-sm">
-            {new Date().toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'short', day: 'numeric'})}
+      {/* Professional square header */}
+      <div className="mb-8">
+        <div className="bg-gray-800 px-6 py-4 shadow-md">
+          <div className="flex justify-between items-center">
+            <h1 className={`${robotoMono.className} text-2xl uppercase tracking-wide text-white border-l-4 border-gray-500 pl-4`}>
+              Inventory Dashboard
+            </h1>
+            <div className="text-gray-300 text-sm font-medium">
+              {new Date().toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'short', day: 'numeric'})}
+            </div>
           </div>
         </div>
+        {/* Subtle divider line */}
+        <div className="h-1 bg-gradient-to-r from-gray-700 to-gray-600"></div>
       </div>
       
       {/* Top Action Bar */}
@@ -300,7 +304,7 @@ export default function StockManagementPage() {
         <div className="flex space-x-3">
           <button
             onClick={() => setIsAddProductModalOpen(true)}
-            className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="inline-flex items-center rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:bg-gray-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

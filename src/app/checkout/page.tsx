@@ -274,30 +274,36 @@ export default function CheckoutPage() {
 
   return (
     <div className="container mx-auto max-w-4xl px-4 pb-20 pt-6">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className={`${robotoMono.className} border-b-4 border-blue-500 pb-2 text-3xl uppercase tracking-wider text-gray-900`}>
-          {isInvoiceGenerated ? 'INVOICE' : 'FINALIZE INVOICE'}
-        </h1>
-        <div className="flex items-center space-x-2">
-          {!isInvoiceGenerated && (
-            <Link 
-              href="/search" 
-              className="flex items-center text-blue-600 hover:text-blue-800"
-            >
-              <span className="material-icons mr-1">add</span>
-              <span className="hidden sm:inline">Add More Items</span>
-              <span className="sm:hidden">Add</span>
-            </Link>
-          )}
-          <Link 
-            href="/history" 
-            className="flex items-center rounded-md bg-gray-200 px-3 py-2 text-gray-700 hover:bg-gray-300"
-          >
-            <span className="material-icons mr-1">history</span>
-            <span className="hidden sm:inline">Invoice History</span>
-            <span className="sm:hidden">History</span>
-          </Link>
+      <div className="mb-8">
+        <div className="bg-gray-800 px-6 py-4 shadow-md">
+          <div className="flex items-center justify-between">
+            <h1 className={`${robotoMono.className} text-2xl uppercase tracking-wide text-white border-l-4 border-gray-500 pl-4`}>
+              {isInvoiceGenerated ? 'INVOICE' : 'FINALIZE INVOICE'}
+            </h1>
+            <div className="flex items-center space-x-2">
+              {!isInvoiceGenerated && (
+                <Link 
+                  href="/search" 
+                  className="flex items-center text-gray-300 hover:text-white"
+                >
+                  <span className="material-icons mr-1">add</span>
+                  <span className="hidden sm:inline">Add More Items</span>
+                  <span className="sm:hidden">Add</span>
+                </Link>
+              )}
+              <Link 
+                href="/history" 
+                className="flex items-center rounded-md bg-gray-700 px-3 py-2 text-gray-200 hover:bg-gray-600"
+              >
+                <span className="material-icons mr-1">history</span>
+                <span className="hidden sm:inline">Invoice History</span>
+                <span className="sm:hidden">History</span>
+              </Link>
+            </div>
+          </div>
         </div>
+        {/* Subtle divider line */}
+        <div className="h-1 bg-gradient-to-r from-gray-700 to-gray-600"></div>
       </div>
 
       {/* Invoice Summary */}
@@ -377,14 +383,14 @@ export default function CheckoutPage() {
             <>
               <button
                 onClick={handleDownloadPDF}
-                className="flex items-center justify-center rounded-md bg-green-600 px-6 py-3 text-white hover:bg-green-700 font-bold"
+                className="flex items-center justify-center rounded-md bg-gray-700 px-6 py-3 text-white hover:bg-gray-600 font-bold"
               >
                 <span className="material-icons mr-2">download</span>
                 Download PDF
               </button>
               <button
                 onClick={handleNewInvoice}
-                className="flex items-center justify-center rounded-md bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 font-bold"
+                className="flex items-center justify-center rounded-md bg-gray-800 px-6 py-3 text-white hover:bg-gray-700 font-bold"
               >
                 <span className="material-icons mr-2">add_circle</span>
                 Create New Invoice
@@ -400,7 +406,7 @@ export default function CheckoutPage() {
               </button>
               <button
                 onClick={handleGenerateInvoice}
-                className="flex items-center justify-center rounded-md bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 font-bold"
+                className="flex items-center justify-center rounded-md bg-gray-800 px-6 py-3 text-white hover:bg-gray-700 font-bold"
               >
                 <span className="material-icons mr-2">receipt</span>
                 Confirm Invoice
