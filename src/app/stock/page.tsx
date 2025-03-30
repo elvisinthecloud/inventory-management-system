@@ -5,6 +5,7 @@ import { Geist, Roboto_Mono } from "next/font/google";
 import Link from 'next/link';
 import { useInvoice } from '../context/InvoiceContext';
 import AddProductModal from '../components/AddProductModal';
+import PageHeader from '@/app/components/PageHeader';
 
 const geistSans = Geist({
   weight: '400',
@@ -282,36 +283,28 @@ export default function StockManagementPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-6xl px-4 py-6">
-      {/* Professional square header */}
-      <div className="mb-8">
-        <div className="bg-gray-800 px-6 py-4 shadow-md">
-          <div className="flex justify-between items-center">
-            <h1 className={`${robotoMono.className} text-2xl uppercase tracking-wide text-white border-l-4 border-gray-500 pl-4`}>
-              Inventory Dashboard
-            </h1>
-            <div className="text-gray-300 text-sm font-medium">
-              {new Date().toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'short', day: 'numeric'})}
-            </div>
-          </div>
-        </div>
-        {/* Subtle divider line */}
-        <div className="h-1 bg-gradient-to-r from-gray-700 to-gray-600"></div>
-      </div>
-      
-      {/* Top Action Bar */}
-      <div className="mb-6 flex justify-between items-center">
-        <div className="flex space-x-3">
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      {/* Full-width header */}
+      <PageHeader 
+        title="INVENTORY" 
+        fullWidth={true}
+        withAction={
           <button
             onClick={() => setIsAddProductModalOpen(true)}
-            className="inline-flex items-center rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:bg-gray-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2"
+            className="inline-flex items-center rounded-md bg-gray-700 px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:bg-gray-600"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
-            Add New Product
+            Add Product
           </button>
-          
+        }
+      />
+
+      {/* Content with proper padding */}
+      <div className="container mx-auto px-4 pb-20 pt-2 flex-grow">
+        {/* Top Action Bar */}
+        <div className="mb-6 flex justify-between items-center">
           <button 
             onClick={() => {
               setLoading(true);
@@ -351,289 +344,283 @@ export default function StockManagementPage() {
             Refresh Stock
           </button>
         </div>
-      </div>
-      
-      {/* Search and Filter Controls - Update search bar background to white with better contrast */}
-      <div className="mb-6 space-y-6">
-        <div className="w-full">
-          <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">Search Products</label>
-          <div className="relative bg-white rounded-md shadow-md border border-gray-300">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <input
-              type="text"
-              id="search"
-              placeholder="Search by name or category"
-              className="pl-10 mt-0 block w-full rounded-md border-0 bg-white px-3 py-2.5 ring-0 focus:ring-2 focus:ring-gray-500 text-gray-900 font-medium"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
         
-        <div className="w-full">
-          <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-gray-700">Filter by Category</label>
-            {selectedCategory && (
-              <button 
-                onClick={() => setSelectedCategory('')}
-                className="text-xs text-gray-500 hover:text-gray-700 flex items-center"
-              >
-                Clear Filter
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        {/* Search and Filter Controls */}
+        <div className="mb-6 space-y-6">
+          <div className="w-full">
+            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">Search Products</label>
+            <div className="relative bg-white rounded-md shadow-md border border-gray-300">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
                 </svg>
-              </button>
-            )}
+              </div>
+              <input
+                type="text"
+                id="search"
+                placeholder="Search by name or category"
+                className="pl-10 mt-0 block w-full rounded-md border-0 bg-white px-3 py-2.5 ring-0 focus:ring-2 focus:ring-gray-500 text-gray-900 font-medium"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
           
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setSelectedCategory('')}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                selectedCategory === '' 
-                  ? 'bg-gray-800 text-white shadow-md' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              All Categories
-            </button>
+          <div className="w-full">
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">Filter by Category</label>
+              {selectedCategory && (
+                <button 
+                  onClick={() => setSelectedCategory('')}
+                  className="text-xs text-gray-500 hover:text-gray-700 flex items-center"
+                >
+                  Clear Filter
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
             
-            {categories.map((category) => (
+            <div className="flex flex-wrap gap-2">
               <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
+                onClick={() => setSelectedCategory('')}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                  selectedCategory === category 
+                  selectedCategory === '' 
                     ? 'bg-gray-800 text-white shadow-md' 
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                {category}
+                All Categories
               </button>
-            ))}
-          </div>
-          
-          {/* Category stats */}
-          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
-              <div className="text-xs text-gray-500 mb-1">Total Categories</div>
-              <div className="text-lg font-bold text-gray-800">{categories.length}</div>
+              
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                    selectedCategory === category 
+                      ? 'bg-gray-800 text-white shadow-md' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
             </div>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
-              <div className="text-xs text-gray-500 mb-1">In Stock</div>
-              <div className="text-lg font-bold text-green-600">{inStockProducts}</div>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
-              <div className="text-xs text-gray-500 mb-1">Low Stock</div>
-              <div className="text-lg font-bold text-amber-600">{lowStockProducts}</div>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
-              <div className="text-xs text-gray-500 mb-1">Out of Stock</div>
-              <div className="text-lg font-bold text-red-600">{outOfStockProducts}</div>
+            
+            {/* Category stats */}
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
+                <div className="text-xs text-gray-500 mb-1">Total Categories</div>
+                <div className="text-lg font-bold text-gray-800">{categories.length}</div>
+              </div>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
+                <div className="text-xs text-gray-500 mb-1">In Stock</div>
+                <div className="text-lg font-bold text-green-600">{inStockProducts}</div>
+              </div>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
+                <div className="text-xs text-gray-500 mb-1">Low Stock</div>
+                <div className="text-lg font-bold text-amber-600">{lowStockProducts}</div>
+              </div>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
+                <div className="text-xs text-gray-500 mb-1">Out of Stock</div>
+                <div className="text-lg font-bold text-red-600">{outOfStockProducts}</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      
-      {/* Products Table */}
-      <div className="mt-6 bg-white overflow-hidden rounded-lg border border-gray-200 shadow-md">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th scope="col" className="px-4 sm:px-6 py-3.5 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider text-gray-500">Product Name</th>
-              <th scope="col" className="px-4 sm:px-6 py-3.5 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider text-gray-500 hidden sm:table-cell">Category</th>
-              <th scope="col" className="px-4 sm:px-6 py-3.5 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider text-gray-500 hidden sm:table-cell">Price</th>
-              <th scope="col" className="px-4 sm:px-6 py-3.5 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider text-gray-500">Stock</th>
-              <th scope="col" className="px-4 sm:px-6 py-3.5 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider text-gray-500">Adjust</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {loading ? (
+        
+        {/* Products Table */}
+        <div className="mt-6 bg-white overflow-hidden rounded-lg border border-gray-200 shadow-md">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
-                <td colSpan={5} className="px-4 sm:px-6 py-4 text-center text-sm text-gray-500">Loading products...</td>
+                <th scope="col" className="px-4 sm:px-6 py-3.5 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider text-gray-500">Product Name</th>
+                <th scope="col" className="px-4 sm:px-6 py-3.5 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider text-gray-500 hidden sm:table-cell">Category</th>
+                <th scope="col" className="px-4 sm:px-6 py-3.5 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider text-gray-500 hidden sm:table-cell">Price</th>
+                <th scope="col" className="px-4 sm:px-6 py-3.5 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider text-gray-500">Stock</th>
+                <th scope="col" className="px-4 sm:px-6 py-3.5 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider text-gray-500">Adjust</th>
               </tr>
-            ) : filteredProducts.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 sm:px-6 py-4 text-center text-sm text-gray-500">No products found</td>
-              </tr>
-            ) : (
-              filteredProducts.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50">
-                  <td className="px-4 sm:px-6 py-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="text-base font-medium text-gray-900">{product.name}</div>
-                      </div>
-                      <div className="relative group">
-                        <button 
-                          className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100"
-                          onClick={() => openEditModal(product)}
-                          aria-label={`Options for ${product.name}`}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
-                          </svg>
-                        </button>
-                        <div className="absolute right-0 mt-1 w-28 bg-gray-800 text-white text-xs py-1 px-2 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity z-10">
-                          Edit product
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="px-4 sm:px-6 py-4 text-center text-sm text-gray-500">Loading products...</td>
+                </tr>
+              ) : filteredProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 sm:px-6 py-4 text-center text-sm text-gray-500">No products found</td>
+                </tr>
+              ) : (
+                filteredProducts.map((product) => (
+                  <tr key={product.id} className="hover:bg-gray-50">
+                    <td className="px-4 sm:px-6 py-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="text-base font-medium text-gray-900">{product.name}</div>
+                        </div>
+                        <div className="relative group">
+                          <button 
+                            className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100"
+                            onClick={() => openEditModal(product)}
+                            aria-label={`Options for ${product.name}`}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                            </svg>
+                          </button>
+                          <div className="absolute right-0 mt-1 w-28 bg-gray-800 text-white text-xs py-1 px-2 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity z-10">
+                            Edit product
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1 sm:hidden">${product.price.toFixed(2)}</div>
-                  </td>
-                  <td className="px-4 sm:px-6 py-4 hidden sm:table-cell">
-                    <div className="text-sm text-gray-700">{product.category}</div>
-                  </td>
-                  <td className="px-4 sm:px-6 py-4 hidden sm:table-cell">
-                    <div className="text-sm text-gray-700">${product.price.toFixed(2)}</div>
-                  </td>
-                  <td className="px-4 sm:px-6 py-4">
-                    <div className="flex items-center">
-                      <div className={`h-2.5 w-2.5 rounded-full ${getStockStatusClass(product.stock).bg} mr-2`}></div>
-                      <div className={`text-lg font-bold ${getStockStatusClass(product.stock).text}`}>
-                        {product.stock}
+                      <div className="text-xs text-gray-500 mt-1 sm:hidden">${product.price.toFixed(2)}</div>
+                    </td>
+                    <td className="px-4 sm:px-6 py-4 hidden sm:table-cell">
+                      <div className="text-sm text-gray-700">{product.category}</div>
+                    </td>
+                    <td className="px-4 sm:px-6 py-4 hidden sm:table-cell">
+                      <div className="text-sm text-gray-700">${product.price.toFixed(2)}</div>
+                    </td>
+                    <td className="px-4 sm:px-6 py-4">
+                      <div className="flex items-center">
+                        <div className={`h-2.5 w-2.5 rounded-full ${getStockStatusClass(product.stock).bg} mr-2`}></div>
+                        <div className={`text-lg font-bold ${getStockStatusClass(product.stock).text}`}>
+                          {product.stock}
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-4 sm:px-6 py-4">
-                    <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2">
-                      <input
-                        type="number"
-                        min="0"
-                        className="block w-16 rounded-md border border-gray-300 bg-white px-2 py-1.5 text-center shadow-md focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-bold"
-                        value={adjustments[product.id] || ''}
-                        onChange={(e) => handleAdjustmentChange(product.id, e.target.value)}
-                      />
-                      <div className="flex w-full space-x-2">
-                        <button
-                          onClick={() => applyAdjustment(product.id, true)}
-                          className="flex-1 justify-center inline-flex items-center rounded-md border border-transparent bg-green-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                          aria-label={`Add stock to ${product.name}`}
-                        >
-                          +
-                        </button>
-                        <button
-                          onClick={() => applyAdjustment(product.id, false)}
-                          className="flex-1 justify-center inline-flex items-center rounded-md border border-transparent bg-red-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                          aria-label={`Remove stock from ${product.name}`}
-                        >
-                          -
-                        </button>
+                    </td>
+                    <td className="px-4 sm:px-6 py-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex items-center border border-gray-300 rounded-md">
+                          <input
+                            type="number"
+                            min="0"
+                            value={adjustments[product.id] || ''}
+                            onChange={(e) => handleAdjustmentChange(product.id, e.target.value)}
+                            className="w-14 py-1 px-2 border-0 focus:ring-0 text-center text-sm"
+                            placeholder="Qty"
+                          />
+                        </div>
+                        <div className="flex space-x-1">
+                          <button
+                            onClick={() => applyAdjustment(product.id, true)}
+                            className="p-1 rounded-md text-green-600 hover:text-green-800 hover:bg-green-50"
+                            title="Add to stock"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => applyAdjustment(product.id, false)}
+                            className="p-1 rounded-md text-red-600 hover:text-red-800 hover:bg-red-50"
+                            title="Remove from stock"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-      
-      {/* Add Product Modal */}
-      <AddProductModal 
-        isOpen={isAddProductModalOpen}
-        onClose={() => setIsAddProductModalOpen(false)}
-        existingCategories={categories}
-      />
-      
-      {/* Edit Product Modal */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-5 pb-3 border-b">
-              <h2 className="text-xl font-bold text-gray-900">Edit Product</h2>
-              <button 
-                onClick={() => setIsEditModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
-                aria-label="Close modal"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            <div className="space-y-5">
-              <div>
-                <label htmlFor="edit-product-name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Name
-                </label>
-                <input
-                  type="text"
-                  id="edit-product-name"
-                  className="block w-full rounded-md border border-gray-300 px-3 py-2.5 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-900"
-                  value={editProductData.name}
-                  onChange={(e) => setEditProductData({...editProductData, name: e.target.value})}
-                />
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Modals */}
+        {isAddProductModalOpen && (
+          <AddProductModal
+            isOpen={isAddProductModalOpen}
+            onClose={() => {
+              setIsAddProductModalOpen(false);
+              // Reload products from localStorage after modal is closed
+              const productsJson = localStorage.getItem('products');
+              if (productsJson) {
+                try {
+                  const savedProducts = JSON.parse(productsJson);
+                  setProducts(savedProducts);
+                } catch (error) {
+                  console.error("Error parsing products:", error);
+                }
+              }
+            }}
+            existingCategories={categories}
+          />
+        )}
+        
+        {isEditModalOpen && (
+          <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto overflow-hidden">
+              <div className="bg-gray-100 px-6 py-4 border-b border-gray-200">
+                <h3 className="text-lg font-bold text-gray-900">Edit Product</h3>
               </div>
               
-              <div>
-                <label htmlFor="edit-category" className="block text-sm font-medium text-gray-700 mb-1">
-                  Category
-                </label>
-                <div className="relative">
-                  <select
-                    id="edit-category"
-                    className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium appearance-none"
-                    value={editProductData.category}
-                    onChange={(e) => setEditProductData({...editProductData, category: e.target.value})}
-                  >
-                    {categories.map((category) => (
-                      <option key={category} value={category}>{category}</option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </div>
+              <div className="p-6">
+                <div className="mb-4">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                  <input
+                    type="text"
+                    id="name"
+                    value={editProductData.name}
+                    onChange={(e) => setEditProductData({...editProductData, name: e.target.value})}
+                    className="block w-full rounded-md border border-gray-300 p-2 focus:border-gray-500 focus:ring-gray-500"
+                  />
                 </div>
-              </div>
-              
-              <div>
-                <label htmlFor="edit-price" className="block text-sm font-medium text-gray-700 mb-1">
-                  Price ($)
-                </label>
-                <div className="relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-                    <span className="text-gray-500 sm:text-sm">$</span>
-                  </div>
+                
+                <div className="mb-4">
+                  <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">Price</label>
                   <input
                     type="number"
-                    id="edit-price"
-                    className="pl-7 block w-full rounded-md border border-gray-300 px-3 py-2.5 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-900"
-                    min="0.01"
+                    id="price"
+                    min="0"
                     step="0.01"
                     value={editProductData.price}
                     onChange={(e) => setEditProductData({...editProductData, price: e.target.value})}
+                    className="block w-full rounded-md border border-gray-300 p-2 focus:border-gray-500 focus:ring-gray-500"
                   />
                 </div>
+                
+                <div className="mb-4">
+                  <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <input
+                    type="text"
+                    id="category"
+                    list="categories"
+                    value={editProductData.category}
+                    onChange={(e) => setEditProductData({...editProductData, category: e.target.value})}
+                    className="block w-full rounded-md border border-gray-300 p-2 focus:border-gray-500 focus:ring-gray-500"
+                  />
+                  <datalist id="categories">
+                    {categories.map(category => (
+                      <option key={category} value={category} />
+                    ))}
+                  </datalist>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3 border-t border-gray-200">
+                <button
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveEditedProduct}
+                  className="px-4 py-2 bg-gray-800 rounded-md text-white hover:bg-gray-700"
+                >
+                  Save Changes
+                </button>
               </div>
             </div>
-            
-            <div className="flex justify-end gap-3 pt-5 mt-5 border-t">
-              <button
-                type="button"
-                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-                onClick={() => setIsEditModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-                onClick={saveEditedProduct}
-              >
-                Save Changes
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 } 
