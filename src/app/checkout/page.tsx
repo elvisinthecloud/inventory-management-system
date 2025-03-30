@@ -12,7 +12,7 @@ const robotoMono = Roboto_Mono({
 });
 
 export default function CheckoutPage() {
-  const { invoice, clearInvoice, totalItems, subtotal, saveInvoiceToHistory } = useInvoice();
+  const { invoice, clearInvoice, totalItems, subtotal, saveInvoiceToHistory, updateProductStock } = useInvoice();
   const router = useRouter();
   const [orderId, setOrderId] = useState('');
   const [orderDate, setOrderDate] = useState('');
@@ -42,7 +42,55 @@ export default function CheckoutPage() {
   const total = subtotal + tax + deliveryFee;
 
   const handleGenerateInvoice = () => {
+    // First, update stock for all items in the invoice
+    if (invoice.restaurant && invoice.items.length > 0) {
+      // Get current products from localStorage
+      const productsJson = localStorage.getItem('products');
+      if (productsJson) {
+        let products = JSON.parse(productsJson);
+        let stockUpdated = false;
+        
+        console.log("Processing invoice for stock updates...");
+        
+        // Process each invoice item and update stock
+        invoice.items.forEach(item => {
+          const productIndex = products.findIndex((p: { id: number }) => p.id === item.id);
+          if (productIndex >= 0) {
+            // Get current stock
+            const currentStock = products[productIndex].stock;
+            
+            // Calculate new stock (don't let it go below 0)
+            const newStock = Math.max(0, currentStock - item.quantity);
+            
+            console.log(`Invoice item: ${item.name} (ID: ${item.id})`);
+            console.log(`  Stock before: ${currentStock}`);
+            console.log(`  Quantity in invoice: ${item.quantity}`);
+            console.log(`  Stock after: ${newStock}`);
+            
+            // Update product stock in both arrays
+            products[productIndex].stock = newStock;
+            stockUpdated = true;
+            
+            // Also update in InvoiceContext
+            updateProductStock(item.id, newStock);
+          } else {
+            console.warn(`Product with ID ${item.id} not found in products array`);
+          }
+        });
+        
+        // Save updated products back to localStorage
+        if (stockUpdated) {
+          localStorage.setItem('products', JSON.stringify(products));
+          console.log("✅ Stock updated in localStorage after invoice confirmation");
+        }
+      } else {
+        console.warn("No products found in localStorage when processing invoice");
+      }
+    }
+    
+    // Then proceed with invoice confirmation
     setIsInvoiceGenerated(true);
+    
     // Save to invoice history
     if (invoice.restaurant) {
       saveInvoiceToHistory({
@@ -55,6 +103,7 @@ export default function CheckoutPage() {
         deliveryFee,
         total
       });
+      console.log(`Invoice ${orderId} saved to history`);
     }
   };
 

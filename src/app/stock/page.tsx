@@ -62,60 +62,93 @@ export default function StockManagementPage() {
   // Load products on component mount
   useEffect(() => {
     const loadProducts = () => {
-      setTimeout(() => {
-        // Try to get products from localStorage
-        const productsJson = localStorage.getItem('products');
-        
-        if (productsJson) {
+      setLoading(true);
+      console.log("Loading products data from localStorage");
+      
+      // Try to get products from localStorage
+      const productsJson = localStorage.getItem('products');
+      
+      if (productsJson) {
+        try {
           // If products exist in localStorage, use them
           const savedProducts = JSON.parse(productsJson);
+          console.log(`Found ${savedProducts.length} products in localStorage`);
+          
           // Update stock values from context
-          const productsWithUpdatedStock = savedProducts.map((product: Product) => ({
-            ...product,
-            stock: getProductStock(product.id)
-          }));
+          const productsWithUpdatedStock = savedProducts.map((product: Product) => {
+            const currentStock = getProductStock(product.id);
+            console.log(`Product ${product.name} (ID: ${product.id}) - Stock: ${currentStock !== 0 ? product.stock : 0}`);
+            return {
+              ...product,
+              // Only override with context stock if it's not 0, otherwise keep the localStorage value
+              stock: currentStock !== 0 ? currentStock : product.stock
+            };
+          });
+          
           setProducts(productsWithUpdatedStock);
-        } else {
-          // Otherwise, use our default products
-          const baseProducts = [
-            { id: 1, name: 'Cinnamon', category: 'Spices', price: 3.99 },
-            { id: 2, name: 'Cardamom', category: 'Spices', price: 5.99 },
-            { id: 3, name: 'Turmeric', category: 'Spices', price: 2.99 },
-            { id: 4, name: 'Basil', category: 'Herbs', price: 2.49 },
-            { id: 5, name: 'Mint', category: 'Herbs', price: 1.99 },
-            { id: 6, name: 'Rosemary', category: 'Herbs', price: 2.29 },
-            { id: 7, name: 'Vanilla Ice Cream', category: 'Ice Cream', price: 4.99 },
-            { id: 8, name: 'Chocolate Ice Cream', category: 'Ice Cream', price: 4.99 },
-            { id: 9, name: 'Strawberry Ice Cream', category: 'Ice Cream', price: 5.49 },
-            { id: 10, name: 'Tomatoes', category: 'Vegetables', price: 2.99 },
-            { id: 11, name: 'Carrots', category: 'Vegetables', price: 1.49 },
-            { id: 12, name: 'Broccoli', category: 'Vegetables', price: 1.99 },
-            { id: 13, name: 'Apples', category: 'Fruits', price: 3.49 },
-            { id: 14, name: 'Bananas', category: 'Fruits', price: 1.29 },
-            { id: 15, name: 'Oranges', category: 'Fruits', price: 2.49 },
-            { id: 16, name: 'Milk', category: 'Dairy', price: 2.49 },
-            { id: 17, name: 'Cheese', category: 'Dairy', price: 3.99 },
-            { id: 18, name: 'Yogurt', category: 'Dairy', price: 1.99 },
-          ];
-          
-          // Add stock from context to each product
-          const stockProducts = baseProducts.map(product => ({
-            ...product,
-            stock: getProductStock(product.id)
-          }));
-          
-          // Save to localStorage for future use
-          localStorage.setItem('products', JSON.stringify(baseProducts));
-          
-          setProducts(stockProducts);
+          console.log("Products loaded with current stock values");
+        } catch (error) {
+          console.error("Error parsing products from localStorage:", error);
+          // Fallback to default products if there's an error
+          setProducts([]);
         }
+      } else {
+        // Otherwise, use our default products
+        console.log("No products found in localStorage, using default products");
+        const baseProducts = [
+          { id: 1, name: 'Cinnamon', category: 'Spices', price: 3.99, stock: 15 },
+          { id: 2, name: 'Cardamom', category: 'Spices', price: 5.99, stock: 8 },
+          { id: 3, name: 'Turmeric', category: 'Spices', price: 2.99, stock: 20 },
+          { id: 4, name: 'Basil', category: 'Herbs', price: 2.49, stock: 12 },
+          { id: 5, name: 'Mint', category: 'Herbs', price: 1.99, stock: 18 },
+          { id: 6, name: 'Rosemary', category: 'Herbs', price: 2.29, stock: 5 },
+          { id: 7, name: 'Vanilla Ice Cream', category: 'Ice Cream', price: 4.99, stock: 10 },
+          { id: 8, name: 'Chocolate Ice Cream', category: 'Ice Cream', price: 4.99, stock: 14 },
+          { id: 9, name: 'Strawberry Ice Cream', category: 'Ice Cream', price: 5.49, stock: 7 },
+          { id: 10, name: 'Tomatoes', category: 'Vegetables', price: 2.99, stock: 25 },
+          { id: 11, name: 'Carrots', category: 'Vegetables', price: 1.49, stock: 30 },
+          { id: 12, name: 'Broccoli', category: 'Vegetables', price: 1.99, stock: 15 },
+          { id: 13, name: 'Apples', category: 'Fruits', price: 3.49, stock: 40 },
+          { id: 14, name: 'Bananas', category: 'Fruits', price: 1.29, stock: 35 },
+          { id: 15, name: 'Oranges', category: 'Fruits', price: 2.49, stock: 22 },
+          { id: 16, name: 'Milk', category: 'Dairy', price: 2.49, stock: 42 },
+          { id: 17, name: 'Cheese', category: 'Dairy', price: 3.99, stock: 6 },
+          { id: 18, name: 'Yogurt', category: 'Dairy', price: 1.99, stock: 18 },
+        ];
         
-        setLoading(false);
-      }, 500);
+        // Initialize context stock values for each product
+        baseProducts.forEach(product => {
+          if (getProductStock(product.id) === 0) {
+            updateProductStock(product.id, product.stock);
+          }
+        });
+        
+        // Save products with stock to localStorage
+        localStorage.setItem('products', JSON.stringify(baseProducts));
+        
+        setProducts(baseProducts);
+      }
+      
+      setLoading(false);
     };
     
     loadProducts();
-  }, [getProductStock]);
+    
+    // Add event listener for focus/visibility changes
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log("Page became visible, refreshing stock data");
+        loadProducts();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Clean up event listener
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [getProductStock, updateProductStock]);
   
   // Handle adjustment input changes
   const handleAdjustmentChange = (productId: number, value: string) => {
@@ -144,21 +177,28 @@ export default function StockManagementPage() {
       ? product.stock + adjustment 
       : Math.max(0, product.stock - adjustment);
       
+    console.log(`Adjusting stock for ${product.name}: ${product.stock} → ${newStock} (${isAdd ? 'adding' : 'subtracting'} ${adjustment})`);
+    
     // Update stock in context
     updateProductStock(productId, newStock);
     
     // Update local state to reflect changes
-    setProducts(prevProducts => 
-      prevProducts.map(product => {
-        if (product.id === productId) {
-          return {
-            ...product,
-            stock: newStock
-          };
-        }
-        return product;
-      })
-    );
+    const updatedProducts = products.map(p => {
+      if (p.id === productId) {
+        return {
+          ...p,
+          stock: newStock
+        };
+      }
+      return p;
+    });
+    
+    // Update state
+    setProducts(updatedProducts);
+    
+    // Save changes to localStorage
+    localStorage.setItem('products', JSON.stringify(updatedProducts));
+    console.log(`Saved updated stock to localStorage for product ${productId}`);
     
     // Clear the adjustment input
     setAdjustments({
@@ -257,15 +297,56 @@ export default function StockManagementPage() {
       
       {/* Top Action Bar */}
       <div className="mb-6 flex justify-between items-center">
-        <button
-          onClick={() => setIsAddProductModalOpen(true)}
-          className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          Add New Product
-        </button>
+        <div className="flex space-x-3">
+          <button
+            onClick={() => setIsAddProductModalOpen(true)}
+            className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Add New Product
+          </button>
+          
+          <button 
+            onClick={() => {
+              setLoading(true);
+              console.log("Manual refresh of stock data requested");
+              
+              // Force reload products data from localStorage
+              const productsJson = localStorage.getItem('products');
+              if (productsJson) {
+                try {
+                  const savedProducts = JSON.parse(productsJson);
+                  console.log(`Loaded ${savedProducts.length} products from localStorage`);
+                  
+                  // Use the stock values directly from localStorage
+                  setProducts(savedProducts);
+                  
+                  // Also ensure context has the latest values
+                  savedProducts.forEach((product: Product) => {
+                    updateProductStock(product.id, product.stock);
+                  });
+                  
+                  console.log("✅ Stock data refreshed successfully from localStorage");
+                } catch (error) {
+                  console.error("Error refreshing stock data:", error);
+                } finally {
+                  setLoading(false);
+                }
+              } else {
+                console.warn("No products found in localStorage during refresh");
+                setLoading(false);
+              }
+            }}
+            className="inline-flex items-center rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-800 shadow-md transition-all hover:bg-gray-200 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+            Refresh Stock
+          </button>
+        </div>
       </div>
       
       {/* Search and Filter Controls - Update search bar background to white with better contrast */}
