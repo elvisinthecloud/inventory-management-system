@@ -176,9 +176,30 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
 
   // Add an item to the invoice
   const addItem = (item: Omit<InvoiceItem, 'quantity'>) => {
-    // Check if we have stock available
-    const currentStock = getProductStock(item.id);
-    if (currentStock <= 0) {
+    // Check stock both from context and localStorage
+    const contextStock = getProductStock(item.id);
+    
+    // Get latest stock from localStorage (the source of truth)
+    let latestStock = contextStock;
+    const productsJson = localStorage.getItem('products');
+    if (productsJson) {
+      try {
+        const products = JSON.parse(productsJson);
+        const product = products.find((p: Product) => p.id === item.id);
+        if (product) {
+          latestStock = product.stock;
+          // Update context stock if different
+          if (latestStock !== contextStock) {
+            updateProductStock(item.id, latestStock);
+          }
+        }
+      } catch (error) {
+        console.error("Error checking latest stock:", error);
+      }
+    }
+    
+    // If item is completely out of stock
+    if (latestStock <= 0) {
       alert(`Cannot add ${item.name} - Out of stock!`);
       return;
     }
@@ -191,7 +212,7 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
         // If exists, check if we can increment quantity
         const currentQuantity = prevInvoice.items[existingItemIndex].quantity;
         
-        if (currentQuantity >= currentStock) {
+        if (currentQuantity >= latestStock) {
           alert(`Cannot add more ${item.name} - Stock limit reached!`);
           return prevInvoice;
         }
@@ -224,21 +245,59 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
 
   // Update the quantity of an item
   const updateQuantity = (itemId: number, quantity: number) => {
+    // Get current item from invoice
+    const currentItem = invoice.items.find(item => item.id === itemId);
+    if (!currentItem) return;
+    
+    // Get latest stock from localStorage (the source of truth)
+    let latestStock = getProductStock(itemId);
+    const productsJson = localStorage.getItem('products');
+    if (productsJson) {
+      try {
+        const products = JSON.parse(productsJson);
+        const product = products.find((p: Product) => p.id === itemId);
+        if (product) {
+          latestStock = product.stock;
+          // Update context stock if different
+          if (latestStock !== getProductStock(itemId)) {
+            updateProductStock(itemId, latestStock);
+          }
+        }
+      } catch (error) {
+        console.error("Error checking latest stock:", error);
+      }
+    }
+    
+    // If item is completely out of stock (stock is 0)
+    if (latestStock === 0) {
+      // Show warning that item is out of stock
+      alert(`${currentItem.name} is now out of stock and will be removed from your invoice.`);
+      // Remove the item from invoice
+      removeItem(itemId);
+      return;
+    }
+    
+    // Handle normal quantity reduction
     if (quantity < 1) {
       // If quantity is less than 1, remove the item
       removeItem(itemId);
       return;
     }
     
-    // Check stock when increasing quantity
-    const currentStock = getProductStock(itemId);
-    const currentItem = invoice.items.find(item => item.id === itemId);
-    
-    if (currentItem && quantity > currentItem.quantity && quantity > currentStock) {
-      alert(`Cannot set quantity to ${quantity} - Only ${currentStock} in stock!`);
+    // Check if requested quantity exceeds available stock
+    if (quantity > currentItem.quantity && quantity > latestStock) {
+      alert(`Cannot set quantity to ${quantity} - Only ${latestStock} in stock!`);
       return;
     }
     
+    // If decreasing quantity but still need to cap at available stock
+    if (quantity <= currentItem.quantity && quantity > latestStock) {
+      // If we're reducing but still higher than available stock, cap at available stock
+      alert(`Quantity adjusted to ${latestStock} - limited by available stock.`);
+      quantity = latestStock;
+    }
+    
+    // Update the quantity
     setInvoice(prevInvoice => ({
       ...prevInvoice,
       items: prevInvoice.items.map(item => 

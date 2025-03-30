@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useInvoice } from '../context/InvoiceContext';
 import { Roboto_Mono } from "next/font/google";
 import Link from 'next/link';
@@ -13,8 +13,70 @@ const robotoMono = Roboto_Mono({
 });
 
 export default function InvoicesPage() {
-  const { invoice, updateQuantity, removeItem, clearInvoice, totalItems, subtotal } = useInvoice();
+  const { invoice, updateQuantity, removeItem, clearInvoice, totalItems, subtotal, getProductStock } = useInvoice();
   const router = useRouter();
+  
+  // Check stock availability when page loads
+  useEffect(() => {
+    // Only run this if we have items in the invoice
+    if (invoice.items.length > 0) {
+      console.log("Verifying stock for all invoice items...");
+      
+      // Get current products from localStorage
+      const productsJson = localStorage.getItem('products');
+      if (productsJson) {
+        try {
+          const products = JSON.parse(productsJson);
+          let itemsWithLowStock: Array<{ name: string; original: number; adjusted: number }> = [];
+          let adjustments = false;
+          
+          // Check each invoice item against current stock
+          invoice.items.forEach(item => {
+            const product = products.find((p: { id: number; stock: number }) => p.id === item.id);
+            if (product) {
+              // If item quantity exceeds available stock
+              if (item.quantity > product.stock) {
+                if (product.stock > 0) {
+                  // Adjust quantity to match available stock
+                  console.log(`Adjusting ${item.name} quantity from ${item.quantity} to ${product.stock}`);
+                  updateQuantity(item.id, product.stock);
+                  itemsWithLowStock.push({
+                    name: item.name, 
+                    original: item.quantity, 
+                    adjusted: product.stock
+                  });
+                  adjustments = true;
+                } else {
+                  // If completely out of stock
+                  console.log(`Removing ${item.name} from invoice - out of stock`);
+                  removeItem(item.id);
+                  itemsWithLowStock.push({
+                    name: item.name, 
+                    original: item.quantity, 
+                    adjusted: 0
+                  });
+                  adjustments = true;
+                }
+              }
+            }
+          });
+          
+          // Show notification if adjustments were made
+          if (adjustments) {
+            const message = itemsWithLowStock.map(item => 
+              item.adjusted === 0 
+                ? `${item.name}: Removed (out of stock)` 
+                : `${item.name}: Reduced from ${item.original} to ${item.adjusted}`
+            ).join('\n');
+            
+            alert(`Some items in your invoice have been adjusted due to stock changes:\n\n${message}`);
+          }
+        } catch (error) {
+          console.error("Error checking stock availability:", error);
+        }
+      }
+    }
+  }, [invoice.items, updateQuantity, removeItem]);
   
   const taxRate = 0.06;
   const tax = subtotal * taxRate;

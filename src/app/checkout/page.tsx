@@ -22,8 +22,52 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (!invoice.restaurant || invoice.items.length === 0) {
       router.push('/restaurants');
+      return;
     }
-  }, [invoice.restaurant, invoice.items.length, router]);
+
+    // Verify if all items in the invoice are still in stock
+    const verifyStock = () => {
+      const productsJson = localStorage.getItem('products');
+      if (productsJson) {
+        const products = JSON.parse(productsJson);
+        
+        // Check each invoice item against current stock
+        let insufficientStock = false;
+        let outOfStockItems = [];
+
+        for (const item of invoice.items) {
+          const product = products.find((p: { id: number }) => p.id === item.id);
+          if (product) {
+            // If current stock is less than quantity in invoice
+            if (product.stock < item.quantity) {
+              insufficientStock = true;
+              outOfStockItems.push({
+                name: item.name,
+                requested: item.quantity,
+                available: product.stock
+              });
+            }
+          }
+        }
+        
+        // If any items are out of stock, show warning and reset invoice
+        if (insufficientStock) {
+          const message = outOfStockItems.map(item => 
+            `${item.name}: Requested ${item.requested}, only ${item.available} available`
+          ).join('\n');
+          
+          alert(`Some items in your invoice are no longer available:\n${message}\n\nYou will be redirected to the restaurants page.`);
+          clearInvoice();
+          router.push('/restaurants');
+        }
+      }
+    };
+
+    // Verify stock when component mounts
+    if (!isInvoiceGenerated) {
+      verifyStock();
+    }
+  }, [invoice.restaurant, invoice.items, router, clearInvoice, isInvoiceGenerated]);
 
   // Generate order ID and date
   useEffect(() => {
@@ -42,6 +86,44 @@ export default function CheckoutPage() {
   const total = subtotal + tax + deliveryFee;
 
   const handleGenerateInvoice = () => {
+    // Check if all items are still in stock
+    if (invoice.restaurant && invoice.items.length > 0) {
+      // Get current products from localStorage
+      const productsJson = localStorage.getItem('products');
+      if (productsJson) {
+        const products = JSON.parse(productsJson);
+        
+        // Check each invoice item against current stock
+        let insufficientStock = false;
+        let outOfStockItems = [];
+
+        for (const item of invoice.items) {
+          const product = products.find((p: { id: number }) => p.id === item.id);
+          if (product) {
+            // If current stock is less than quantity in invoice
+            if (product.stock < item.quantity) {
+              insufficientStock = true;
+              outOfStockItems.push({
+                name: item.name,
+                requested: item.quantity,
+                available: product.stock
+              });
+            }
+          }
+        }
+        
+        // If any items are out of stock, show error and don't proceed
+        if (insufficientStock) {
+          const message = outOfStockItems.map(item => 
+            `${item.name}: Requested ${item.requested}, only ${item.available} available`
+          ).join('\n');
+          
+          alert(`Cannot generate invoice due to insufficient stock:\n${message}`);
+          return;
+        }
+      }
+    }
+    
     // First, update stock for all items in the invoice
     if (invoice.restaurant && invoice.items.length > 0) {
       // Get current products from localStorage
@@ -166,7 +248,22 @@ export default function CheckoutPage() {
   };
 
   const handleNewInvoice = () => {
+    // Clear the invoice from context
     clearInvoice();
+    
+    // Also clear isInvoiceGenerated state
+    setIsInvoiceGenerated(false);
+    
+    // Reset order ID and date
+    setOrderId(`INV-${Math.floor(100000 + Math.random() * 900000)}`);
+    const date = new Date();
+    setOrderDate(date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }));
+    
+    // Redirect to restaurants page
     router.push('/restaurants');
   };
 
