@@ -41,6 +41,7 @@ const defaultCategories: Category[] = [
   { id: 4, name: 'Vegetables', image: '/images/categories/vegetables.jpg' },
   { id: 5, name: 'Fruits', image: '/images/categories/fruits.jpg' },
   { id: 6, name: 'Dairy', image: '/images/categories/dairy.jpg' },
+  { id: 7, name: 'Chiles', image: '/images/categories/default.jpg' },
 ];
 
 // Define a consistent mapping of default category names to IDs
@@ -50,7 +51,8 @@ const DEFAULT_CATEGORY_MAP: {[key: string]: number} = {
   'Ice Cream': 3,
   'Vegetables': 4,
   'Fruits': 5,
-  'Dairy': 6
+  'Dairy': 6,
+  'Chiles': 7
 };
 
 export default function SearchPage() {
