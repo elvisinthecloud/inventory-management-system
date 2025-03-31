@@ -35,24 +35,26 @@ interface Product {
 
 // Default categories data with images
 const defaultCategories: Category[] = [
-  { id: 1, name: 'Spices', image: '/images/categories/spices.jpg' },
-  { id: 2, name: 'Herbs', image: '/images/categories/herbs.jpg' },
-  { id: 3, name: 'Ice Cream', image: '/images/categories/icecream.jpg' },
-  { id: 4, name: 'Vegetables', image: '/images/categories/vegetables.jpg' },
-  { id: 5, name: 'Fruits', image: '/images/categories/fruits.jpg' },
-  { id: 6, name: 'Dairy', image: '/images/categories/dairy.jpg' },
+  // { id: 1, name: 'Spices', image: '/images/categories/spices.jpg' },
+  { id: 2, name: 'Hierbas', image: '/images/categories/herbs.jpg' },
+  // { id: 3, name: 'Ice Cream', image: '/images/categories/icecream.jpg' },
+  // { id: 4, name: 'Vegetables', image: '/images/categories/vegetables.jpg' },
+  // { id: 5, name: 'Fruits', image: '/images/categories/fruits.jpg' },
+  // { id: 6, name: 'Dairy', image: '/images/categories/dairy.jpg' },
   { id: 7, name: 'Chiles', image: '/images/categories/default.jpg' },
+  { id: 8, name: 'Especias', image: '/images/categories/default.jpg' }
 ];
 
 // Define a consistent mapping of default category names to IDs
 const DEFAULT_CATEGORY_MAP: {[key: string]: number} = {
-  'Spices': 1,
-  'Herbs': 2,
-  'Ice Cream': 3,
-  'Vegetables': 4,
-  'Fruits': 5,
-  'Dairy': 6,
-  'Chiles': 7
+  // 'Spices': 1,
+  'Hierbas': 2,
+  // 'Ice Cream': 3,
+  // 'Vegetables': 4,
+  // 'Fruits': 5,
+  // 'Dairy': 6,
+  'Chiles': 7,
+  'Especias': 8
 };
 
 export default function SearchPage() {
