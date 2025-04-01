@@ -23,4 +23,33 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+/* Ensure Material Icons are loaded */
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+/* Toastify styling adjustments */
+.Toastify__toast-container {
+  z-index: 99999; /* Ensure toasts are on top */
+}
+
+.Toastify__toast {
+  border-radius: 8px; 
+}
+
+.Toastify__toast--success {
+  background-color: #4CAF50; /* Green */
+}
+
+.Toastify__toast--warning {
+  background-color: #FFC107; /* Amber */
+}
+
+.Toastify__toast--error {
+  background-color: #F44336; /* Red */
+}
+
+.Toastify__toast--info {
+  background-color: #2196F3; /* Blue */
 }

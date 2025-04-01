@@ -1,19 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Geist, Roboto_Mono } from "next/font/google";
+import { Geist } from "next/font/google";
 import SearchBar from '@/app/components/SearchBar';
 import CategoryGrid from '@/app/components/CategoryGrid';
 import { useInvoice } from '@/app/context/InvoiceContext';
 import PageHeader from '@/app/components/PageHeader';
 
+// Use Geist Sans for the page
 const geistSans = Geist({
   weight: '400',
-  subsets: ['latin'],
-});
-
-const robotoMono = Roboto_Mono({
-  weight: '700',
   subsets: ['latin'],
 });
 
@@ -182,8 +178,8 @@ export default function SearchPage() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      {/* Full-width header */}
+    <div className={`flex flex-col min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 ${geistSans.className}`}>
+      {/* Page Header - Keep as is */}
       <PageHeader 
         title="PRODUCT CATALOG" 
         fullWidth={true}
@@ -194,47 +190,35 @@ export default function SearchPage() {
         }
       />
       
-      {/* Main content */}
-      <div className="container mx-auto max-w-6xl px-4 pb-28 pt-2 flex-grow">
-        {/* Search section with modern styling */}
-        <div className="mb-12">
-          <div className="max-w-lg mx-auto mb-4">
-            <h2 className={`${robotoMono.className} text-lg font-medium text-gray-800 mb-3`}>FIND PRODUCTS</h2>
-            <p className="text-sm text-gray-600 mb-6">Search our inventory by product name or browse by category</p>
-          </div>
-          <SearchBar placeholder="Search for products..." />
-        </div>
+      {/* Main content area */}
+      <main className="container mx-auto max-w-7xl px-4 md:px-6 lg:px-8 py-8 md:py-12 flex-grow">
         
-        {/* Categories Section */}
-        <div className="mt-10">
-          <div className="mb-8">
-            <h2 className={`${robotoMono.className} text-lg font-medium text-gray-800 mb-2`}>BROWSE BY CATEGORY</h2>
-            <div className="h-0.5 w-20 bg-gray-800 mb-6"></div>
-            <p className="text-sm text-gray-600 mb-6">Select a category to view all related products</p>
-          </div>
-          <div className="px-2 md:px-4">
-            <CategoryGrid categories={categories} />
-          </div>
-        </div>
-        
-        {/* Quick info section */}
-        <div className="mt-16 bg-white border border-gray-200 p-6 shadow-sm">
-          <div className="flex flex-col md:flex-row gap-6">
-            <div className="flex-1">
-              <h3 className="text-lg font-medium text-gray-800 mb-3">Need Help Finding Something?</h3>
-              <p className="text-sm text-gray-600">Our inventory is constantly updated. If you can't find what you're looking for, please contact our support team.</p>
-            </div>
-            <div className="flex items-end">
-              <button 
-                onClick={() => window.history.back()}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Go Back
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+        {/* Section 1: Search Bar */}
+        <section className="mb-12 md:mb-16 bg-white p-6 md:p-8 rounded-lg shadow-sm border border-gray-200">
+          <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-3">
+            Find Products Instantly
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Use the search bar below or browse categories to find what you need.
+          </p>
+          <SearchBar placeholder="Search by product name or keyword..." />
+        </section>
+
+        {/* Section 2: Categories */}
+        <section>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+            Explore Categories
+          </h2>
+          {/* CategoryGrid will be styled differently via its own component */}
+          <CategoryGrid categories={categories} />
+        </section>
+
+      </main>
+
+      {/* Footer Info Section - Optional, can be removed or kept simple */}
+      <footer className="w-full py-6 px-4 md:px-6 lg:px-8 text-center text-gray-500 text-sm border-t border-gray-200">
+        Need help? Contact Support | © {new Date().getFullYear()} Elite-Prod
+      </footer>
     </div>
   );
 } 
