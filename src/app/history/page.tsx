@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useInvoice } from '../context/InvoiceContext';
 import { Roboto_Mono } from "next/font/google";
 import Link from 'next/link';
 import PageHeader from '@/app/components/PageHeader';
+import { useSearchParams } from 'next/navigation';
 
 const robotoMono = Roboto_Mono({
   weight: '700',
@@ -28,6 +29,39 @@ function ClientOnly({ children }: { children: React.ReactNode }) {
 
 export default function HistoryPage() {
   const { invoiceHistory } = useInvoice();
+  // Create refs object to hold references to each invoice card
+  const invoiceRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
+
+  // Effect for handling scroll to invoice ID from URL hash
+  useEffect(() => {
+    // Get the hash from the URL
+    const hash = window.location.hash;
+    if (hash) {
+      // Remove the # prefix to get the invoice ID
+      const invoiceId = hash.substring(1);
+      
+      // Slight delay to ensure the DOM is ready
+      setTimeout(() => {
+        // Get the element using the ref
+        const element = invoiceRefs.current[invoiceId];
+        
+        if (element) {
+          // Scroll the element into view with smooth behavior
+          element.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+          });
+          
+          // Add a temporary highlight effect
+          element.classList.add('bg-blue-50');
+          setTimeout(() => {
+            element.classList.remove('bg-blue-50');
+            element.classList.add('bg-white');
+          }, 2000);
+        }
+      }, 100);
+    }
+  }, []);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -275,7 +309,14 @@ export default function HistoryPage() {
           ) : (
             <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
               {invoiceHistory.map((invoice, index) => (
-                <div key={`${invoice.id}-${index}`} className="rounded-lg border border-gray-300 bg-white p-4 shadow-md sm:p-6">
+                <div 
+                  key={`${invoice.id}-${index}`}
+                  id={invoice.id} // Add an ID attribute for the fragment navigation
+                  ref={el => {
+                    invoiceRefs.current[invoice.id] = el;
+                  }} // Add ref for programmatic scrolling
+                  className="rounded-lg border border-gray-300 bg-white p-4 shadow-md sm:p-6 transition-colors duration-500"
+                >
                   <div className="mb-4 flex justify-between">
                     <div>
                       <h3 className="text-lg font-bold text-gray-900">Invoice #{invoice.id}</h3>

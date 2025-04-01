@@ -88,7 +88,7 @@ export default function DashboardPage() {
 
   // Calculate quick stats
   const stats = React.useMemo(() => {
-    if (!isClient) return { totalSales: 0, totalOrders: 0, avgOrderValue: 0 };
+    if (!isClient) return { totalSales: 0, totalOrders: 0, avgOrderValue: 0, uniqueStoresDeliveredTo: 0 };
 
     // Get current month
     const today = new Date();
@@ -105,10 +105,15 @@ export default function DashboardPage() {
     const totalOrders = currentMonthInvoices.length;
     const avgOrderValue = totalOrders ? totalSales / totalOrders : 0;
 
+    // Calculate unique stores delivered to this month
+    const uniqueStoreIds = new Set(currentMonthInvoices.map(invoice => invoice.restaurant.id));
+    const uniqueStoresDeliveredTo = uniqueStoreIds.size;
+
     return {
       totalSales: totalSales.toFixed(2),
       totalOrders,
-      avgOrderValue: avgOrderValue.toFixed(2)
+      avgOrderValue: avgOrderValue.toFixed(2),
+      uniqueStoresDeliveredTo
     };
   }, [invoiceHistory, isClient]);
 
@@ -240,8 +245,8 @@ export default function DashboardPage() {
             </div>
             
             <div className="p-6 bg-blue-700 rounded-lg shadow-md">
-              <h3 className="text-sm font-medium text-blue-100 mb-2">ORDERS THIS MONTH</h3>
-              <p className={`${robotoMono.className} text-4xl font-bold`}>{stats.totalOrders}</p>
+              <h3 className="text-sm font-medium text-blue-100 mb-2">STORES DELIVERED TO</h3>
+              <p className={`${robotoMono.className} text-4xl font-bold`}>{stats.uniqueStoresDeliveredTo}</p>
             </div>
             
             <div className="p-6 bg-blue-700 rounded-lg shadow-md">
@@ -323,19 +328,25 @@ export default function DashboardPage() {
             {isClient && invoiceHistory.length > 0 ? (
               <div className="space-y-3">
                 {invoiceHistory.slice(0, 5).map((invoice) => (
-                  <div key={invoice.id} className="flex items-center p-3 border rounded-md hover:bg-gray-50">
-                    <div className="flex-shrink-0">
-                      <span className="material-icons text-blue-500">receipt</span>
+                  <Link 
+                    key={invoice.id} 
+                    href={`/history#${invoice.id}`}
+                    className="block p-3 border rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-150"
+                  >
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <span className="material-icons text-blue-500">receipt</span>
+                      </div>
+                      <div className="flex-1 ml-3">
+                        <p className="font-medium text-gray-900">{invoice.restaurant.name}</p>
+                        <p className="text-sm text-gray-600">Invoice #{invoice.id}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-gray-900">${invoice.total.toFixed(2)}</p>
+                        <p className="text-xs text-gray-500">{new Date(invoice.date).toLocaleDateString()}</p>
+                      </div>
                     </div>
-                    <div className="flex-1 ml-3">
-                      <p className="font-medium text-gray-900">{invoice.restaurant.name}</p>
-                      <p className="text-sm text-gray-600">Invoice #{invoice.id}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-gray-900">${invoice.total.toFixed(2)}</p>
-                      <p className="text-xs text-gray-500">{new Date(invoice.date).toLocaleDateString()}</p>
-                    </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             ) : (
