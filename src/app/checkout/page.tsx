@@ -209,31 +209,39 @@ export default function CheckoutPage() {
         
         // Add a professional header bar
         doc.setFillColor(16, 50, 120); // Deep professional blue
-        doc.rect(0, 0, pageWidth, 40, 'F'); // Square header
+        doc.rect(0, 0, pageWidth, 35, 'F'); // Reduced height from 40 to 35
         
         // Add main title - Elite-Prod
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(20);
         doc.setFont('helvetica', 'bold');
-        doc.text('Elite-Prod', margin, 20);
+        doc.text('Elite-Prod', margin, 18); // Adjusted y position from 20 to 18
         
         // Add subtitle inside the header
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text('Elite Products LLC', margin, 30);
+        doc.text('Elite Products LLC', margin, 28); // Adjusted y position from 30 to 28
         
         // Add invoice title
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(16);
-        doc.text('INVOICE', pageWidth - margin, 20, { align: 'right' });
+        doc.text('INVOICE', pageWidth - margin, 18, { align: 'right' }); // Adjusted y position from 20 to 18
         
         // Generate unique invoice ID
         const invoiceId = Math.random().toString(36).substring(2, 10).toUpperCase();
-        const currentDate = new Date().toISOString().split('T')[0];
+        
+        // Format current date as month/day/year
+        const formattedDate = (() => {
+          const date = new Date();
+          const day = date.getDate();
+          const month = date.toLocaleString('en-US', { month: 'long' });
+          const year = date.getFullYear();
+          return `${month}/${day}/${year}`;
+        })();
         
         // Add invoice number
         doc.setFontSize(10);
-        doc.text(`#${invoiceId}`, pageWidth - margin, 30, { align: 'right' });
+        doc.text(`#${invoiceId}`, pageWidth - margin, 28, { align: 'right' }); // Adjusted y position from 30 to 28
         
         // Invoice metadata section
         doc.setDrawColor(230, 230, 230);
@@ -241,7 +249,7 @@ export default function CheckoutPage() {
         doc.rect(margin, 50, pageWidth - (margin * 2), 30, 'FD');
         
         // Add invoice metadata
-        doc.setFontSize(9);
+        doc.setFontSize(11); // Increased from 9
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(80, 80, 80);
         doc.text('INVOICE DATE:', margin + 6, 60);
@@ -249,9 +257,10 @@ export default function CheckoutPage() {
         doc.text('CUISINE:', pageWidth / 2, 70);
         
         // Add invoice metadata values
-        doc.setFont('helvetica', 'normal');
+        doc.setFont('helvetica', 'bold'); // Changed from 'normal' to 'bold'
+        doc.setFontSize(11); // Increased from default
         doc.setTextColor(60, 60, 60);
-        doc.text(currentDate, margin + 50, 60);
+        doc.text(formattedDate, margin + 50, 60);
         doc.text(invoice.restaurant?.name || 'N/A', margin + 50, 70);
         doc.text(invoice.restaurant?.cuisine || 'N/A', pageWidth / 2 + 30, 70);
         
@@ -285,7 +294,7 @@ export default function CheckoutPage() {
         const colCategory = margin + 75;
         const colPrice = margin + 120;
         const colQty = margin + 145;
-        const colTotal = margin + 170;
+        const colTotal = margin + 160;
         
         // Column headers with clean underline
         doc.text('Item', colItem, yPos);
@@ -355,9 +364,10 @@ export default function CheckoutPage() {
         
         // Add credits if there are any
         if (invoice.credits && invoice.credits.length > 0) {
-          // Credits header
+          // Credits header - only 65% of page width instead of full width
+          const creditsWidth = (pageWidth - (margin * 2)) * 0.65; // 65% of content width
           doc.setFillColor(80, 130, 50); // Professional green
-          doc.rect(margin, contentYPos, pageWidth - (margin * 2), 10, 'F');
+          doc.rect(margin, contentYPos, creditsWidth, 10, 'F'); // Only spans 65% of width
           doc.setTextColor(255, 255, 255);
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(10);
@@ -375,9 +385,9 @@ export default function CheckoutPage() {
           doc.text('Qty', colQty, contentYPos);
           doc.text('Total', colTotal, contentYPos);
           
-          // Header underline
+          // Header underline - only extends to the credit section width
           doc.setDrawColor(200, 200, 200);
-          doc.line(margin, contentYPos + 4, pageWidth - margin, contentYPos + 4);
+          doc.line(margin, contentYPos + 4, margin + creditsWidth, contentYPos + 4);
           contentYPos += 10; // Reduced from 12
           
           // Credits content
@@ -396,7 +406,7 @@ export default function CheckoutPage() {
             
             if (isAlternate) {
               doc.setFillColor(245, 245, 250);
-              doc.rect(margin, contentYPos - 5, pageWidth - (margin * 2), 8, 'F'); // Reduced height
+              doc.rect(margin, contentYPos - 5, creditsWidth, 8, 'F'); // Match width of header
             }
             
             // Truncate description if too long
@@ -426,9 +436,9 @@ export default function CheckoutPage() {
             contentYPos += 8; // Reduced from 12
           }
           
-          // End of credits section with a line
+          // End of credits section with a line - only extends to the credit section width
           doc.setDrawColor(220, 220, 220);
-          doc.line(margin, contentYPos, pageWidth - margin, contentYPos);
+          doc.line(margin, contentYPos, margin + creditsWidth, contentYPos);
           contentYPos += 10; // Reduced from 15
         }
         
@@ -498,7 +508,7 @@ export default function CheckoutPage() {
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(120, 120, 120);
         doc.text('Thank you for your business', pageWidth / 2, footerY, { align: 'center' });
-        doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, footerY + 6, { align: 'center' });
+        doc.text(`Generated on ${formattedDate}`, pageWidth / 2, footerY + 6, { align: 'center' });
         
         // Create a unique filename for the invoice
         const filename = `Invoice_${invoice.restaurant?.name.replace(/\s+/g, '_')}_${invoiceId}.pdf`;
@@ -510,7 +520,7 @@ export default function CheckoutPage() {
         if (invoice.restaurant) {
           saveInvoiceToHistory({
             id: invoiceId,
-            date: currentDate,
+            date: formattedDate,
             restaurant: invoice.restaurant,
             items: invoice.items,
             credits: invoice.credits || [],
