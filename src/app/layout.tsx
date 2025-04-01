@@ -2,7 +2,10 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { InvoiceProvider } from './context/InvoiceContext';
+import { LoadingProvider } from './context/LoadingContext';
 import BottomNav from './components/BottomNav';
+import LoadingIndicator from './components/LoadingIndicator';
+import { NavigationEvents } from './components/NavigationEvents';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -26,20 +29,24 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <InvoiceProvider>
-          {children}
-          <BottomNav />
-          <ToastContainer
-            position="top-right"
-            autoClose={5000}
-            hideProgressBar={false}
-            newestOnTop
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="light"
-          />
+          <LoadingProvider>
+            <LoadingIndicator />
+            <NavigationEvents />
+            {children}
+            <BottomNav />
+            <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="light"
+            />
+          </LoadingProvider>
         </InvoiceProvider>
       </body>
     </html>

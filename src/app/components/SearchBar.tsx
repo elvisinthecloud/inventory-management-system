@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useDebouncedCallback } from 'use-debounce';
+import { useLoading } from '../context/LoadingContext';
 
 interface SearchBarProps {
   placeholder: string;
@@ -12,6 +13,7 @@ export default function SearchBar({ placeholder }: SearchBarProps) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
+  const { startLoading } = useLoading();
   
   // Initialize search term from URL query parameter
   const initialQuery = searchParams.get('q') || '';
@@ -77,8 +79,9 @@ export default function SearchBar({ placeholder }: SearchBarProps) {
     handleSearch(searchTerm);
     setShowSuggestions(false);
     
-    // If not on the results page, navigate to it
+    // If not on the results page, navigate to it with loading indicator
     if (!pathname.includes('/search/results')) {
+      startLoading();
       replace(`/search/results?q=${encodeURIComponent(searchTerm)}`);
     }
   };
@@ -88,6 +91,12 @@ export default function SearchBar({ placeholder }: SearchBarProps) {
     setSearchTerm(suggestion);
     handleSearch(suggestion);
     setShowSuggestions(false);
+    
+    // Show loading indicator when navigating to search results
+    if (!pathname.includes('/search/results')) {
+      startLoading();
+      replace(`/search/results?q=${encodeURIComponent(suggestion)}`);
+    }
   };
 
   // Handle blur event

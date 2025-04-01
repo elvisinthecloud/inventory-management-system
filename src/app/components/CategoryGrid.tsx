@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useLoading } from '../context/LoadingContext';
 
 interface Category {
   id: number;
@@ -16,6 +17,7 @@ interface CategoryGridProps {
 
 export default function CategoryGrid({ categories }: CategoryGridProps) {
   const router = useRouter();
+  const { startLoading } = useLoading();
   
   // Log the categories being rendered to debug
   console.log('Rendering categories:', JSON.stringify(categories));
@@ -29,6 +31,8 @@ export default function CategoryGrid({ categories }: CategoryGridProps) {
   }
 
   const handleCategoryClick = (categoryId: number, categoryName: string) => {
+    // Start loading before navigation
+    startLoading();
     router.push(`/search/category/${categoryId}?name=${encodeURIComponent(categoryName)}`);
   };
   
@@ -81,20 +85,25 @@ export default function CategoryGrid({ categories }: CategoryGridProps) {
   };
 
   return (
-    <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+    // Changed from grid to flex layout, centered
+    <div className="flex flex-col sm:flex-row justify-center items-center gap-8 sm:gap-12 md:gap-16 py-8">
       {categories.map((category, index) => (
-        <div
+        // Changed to button for semantics, added square styling & effects
+        <button
           key={`cat-${category.id}-${category.name}-${index}`}
           onClick={() => handleCategoryClick(category.id, category.name)}
-          className="group cursor-pointer"
+          className="aspect-square w-48 sm:w-52 md:w-60 flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white p-6 shadow-lg transition-all duration-300 ease-in-out hover:shadow-xl hover:border-gray-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:ring-offset-2 group"
         >
-          <div className="aspect-square flex flex-col items-center justify-center border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-gray-300 hover:shadow-md">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-gray-700 transition-colors group-hover:bg-gray-800 group-hover:text-white">
-              {getCategoryIcon(category.name)}
-            </div>
-            <h3 className="text-center text-base font-medium text-gray-800 group-hover:text-gray-900 md:text-lg">{category.name}</h3>
+          {/* Adjusted icon container styling */}
+          <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-gray-700 transition-colors duration-300 group-hover:bg-gray-800 group-hover:text-white md:h-20 md:w-20">
+            {/* Make icon slightly larger */}
+            {React.cloneElement(getCategoryIcon(category.name), { className: "h-10 w-10 md:h-12 md:w-12" })}
           </div>
-        </div>
+          {/* Adjusted text styling */}
+          <h3 className="text-center text-lg font-semibold text-gray-800 transition-colors duration-300 group-hover:text-gray-900 md:text-xl">
+            {category.name}
+          </h3>
+        </button>
       ))}
     </div>
   );

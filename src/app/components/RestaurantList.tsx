@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useInvoice, Restaurant } from '../context/InvoiceContext';
+import { useLoading } from '../context/LoadingContext';
 import { useRouter } from 'next/navigation';
 
 // Define location category interface
@@ -151,11 +152,15 @@ const locationCategories: LocationCategory[] = [
 
 export default function RestaurantList() {
   const { setRestaurant, invoice } = useInvoice();
+  const { startLoading } = useLoading();
   const router = useRouter();
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleSelectRestaurant = (restaurant: Restaurant) => {
+    // Start loading spinner to show UI responsiveness
+    startLoading();
+    
     setRestaurant(restaurant);
     
     // Navigate to search page to add items

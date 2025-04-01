@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useInvoice } from '../context/InvoiceContext';
 
 interface Product {
@@ -13,6 +13,7 @@ interface Product {
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addItem, invoice, updateQuantity, removeItem } = useInvoice();
+  const [addingToInvoice, setAddingToInvoice] = useState(false);
   
   // Find if this product is already in the invoice
   const invoiceItem = invoice.items.find(item => item.id === product.id);
@@ -34,6 +35,9 @@ export default function ProductCard({ product }: { product: Product }) {
       return;
     }
 
+    // Show visual feedback during add
+    setAddingToInvoice(true);
+
     // Add item to invoice
     addItem({
       id: product.id,
@@ -41,6 +45,11 @@ export default function ProductCard({ product }: { product: Product }) {
       price: product.price,
       category: product.category
     });
+    
+    // Reset visual feedback after a delay
+    setTimeout(() => {
+      setAddingToInvoice(false);
+    }, 300);
   };
 
   const handleIncreaseQuantity = () => {
@@ -55,6 +64,9 @@ export default function ProductCard({ product }: { product: Product }) {
       return;
     }
     
+    // Show visual feedback
+    setAddingToInvoice(true);
+    
     if (quantity === 0) {
       addItem({
         id: product.id,
@@ -65,6 +77,11 @@ export default function ProductCard({ product }: { product: Product }) {
     } else {
       updateQuantity(product.id, quantity + 1);
     }
+    
+    // Reset visual feedback after a delay
+    setTimeout(() => {
+      setAddingToInvoice(false);
+    }, 300);
   };
 
   const handleDecreaseQuantity = () => {
@@ -132,12 +149,21 @@ export default function ProductCard({ product }: { product: Product }) {
             className={`mt-2 flex w-full items-center justify-center rounded-none ${
               isStockLimitReached 
                 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                : 'bg-gray-800 hover:bg-gray-700 text-white'
+                : addingToInvoice
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-800 hover:bg-gray-700 text-white'
             } px-4 py-3 text-sm font-medium transition-colors`}
             disabled={isStockLimitReached}
           >
-            <span className="material-icons text-sm mr-2">receipt</span>
-            {isStockLimitReached ? 'Out of Stock' : 'Add to Invoice'}
+            <span className="material-icons text-sm mr-2">
+              {addingToInvoice ? 'check_circle' : 'receipt'}
+            </span>
+            {isStockLimitReached 
+              ? 'Out of Stock' 
+              : addingToInvoice 
+                ? 'Added!' 
+                : 'Add to Invoice'
+            }
           </button>
         ) : (
           <div className="pt-3 border-t border-gray-100">
@@ -149,7 +175,9 @@ export default function ProductCard({ product }: { product: Product }) {
                 >
                   -
                 </button>
-                <span className="px-4 py-1 font-medium text-gray-900 border-l border-r border-gray-200">
+                <span className={`px-4 py-1 font-medium text-gray-900 border-l border-r border-gray-200 ${
+                  addingToInvoice ? 'bg-green-100' : ''
+                } transition-colors duration-200`}>
                   {quantity}
                 </span>
                 <button 
@@ -164,7 +192,9 @@ export default function ProductCard({ product }: { product: Product }) {
                   +
                 </button>
               </div>
-              <span className="font-medium text-gray-700">
+              <span className={`font-medium ${
+                addingToInvoice ? 'text-green-600' : 'text-gray-700'
+              } transition-colors duration-200`}>
                 ${(product.price * quantity).toFixed(2)}
               </span>
             </div>
