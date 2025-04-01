@@ -214,7 +214,7 @@ export default function RestaurantList() {
           </div>
           <input
             type="text"
-            className="block w-full py-3 pl-10 pr-3 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+            className="block w-full py-3 pl-10 pr-3 text-sm text-black border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
             placeholder="Search for store..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
