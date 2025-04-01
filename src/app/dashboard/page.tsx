@@ -127,26 +127,26 @@ export default function DashboardPage() {
     };
   }, [invoiceHistory, isClient]);
 
+  // --- CHART COLORS --- 
+  const pieChartColors = [
+    '#2563eb', // blue-600
+    '#16a34a', // green-600
+    '#d97706', // amber-600
+    '#4f46e5', // indigo-600
+    '#db2777'  // pink-600
+  ];
+  
+  const barChartColor = '#1d4ed8'; // blue-700
+  // ----------------------
+
   // Data for the pie chart
   const pieChartData = {
     labels: restaurantSales.labels,
     datasets: [
       {
         data: restaurantSales.data,
-        backgroundColor: [
-          '#4B5563', // gray-600
-          '#1F2937', // gray-800
-          '#111827', // gray-900
-          '#6B7280', // gray-500
-          '#9CA3AF', // gray-400
-        ],
-        borderColor: [
-          '#ffffff',
-          '#ffffff',
-          '#ffffff',
-          '#ffffff',
-          '#ffffff',
-        ],
+        backgroundColor: pieChartColors,
+        borderColor: '#ffffff',
         borderWidth: 2,
       },
     ],
@@ -159,9 +159,10 @@ export default function DashboardPage() {
       {
         label: 'Monthly Sales ($)',
         data: monthlySales.data,
-        backgroundColor: '#1F2937',
-        borderColor: '#111827',
+        backgroundColor: barChartColor,
+        borderColor: barChartColor, // Use same color for border
         borderWidth: 1,
+        borderRadius: 4, // Add rounded corners to bars
       },
     ],
   };
@@ -176,11 +177,26 @@ export default function DashboardPage() {
       title: {
         display: false,
       },
+      tooltip: { // Customize tooltips
+        backgroundColor: '#262626', // neutral-800
+        titleColor: '#ffffff',
+        bodyColor: '#d4d4d4', // neutral-300
+        padding: 10,
+        cornerRadius: 4,
+      }
     },
     scales: {
       y: {
         beginAtZero: true,
+        grid: { // Add subtle grid lines
+          color: '#e5e7eb' // gray-200
+        }
       },
+      x: {
+        grid: {
+          display: false // Hide vertical grid lines
+        }
+      }
     },
   };
 
@@ -192,7 +208,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
       {/* Full-width header */}
       <PageHeader 
         title="DASHBOARD" 
@@ -213,24 +229,24 @@ export default function DashboardPage() {
       />
 
       {/* Content with proper padding */}
-      <div className="container mx-auto px-4 pb-28 pt-2 flex-grow">
-        {/* Monthly Performance Stats - Prominently displayed at top */}
-        <div className="mb-6 bg-white p-6 rounded-lg shadow-md border border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Monthly Performance ({getCurrentMonthName()})</h2>
+      <div className="container mx-auto px-4 pb-28 pt-4 flex-grow">
+        {/* Monthly Performance Stats - Blue theme */}
+        <div className="mb-6 bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-lg shadow-lg text-white">
+          <h2 className="text-xl font-bold mb-4">Monthly Performance ({getCurrentMonthName()})</h2>
           <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-            <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
-              <h3 className="text-sm font-medium text-gray-600 mb-2">TOTAL SALES THIS MONTH</h3>
-              <p className={`${robotoMono.className} text-4xl font-bold text-gray-900`}>${stats.totalSales}</p>
+            <div className="p-6 bg-blue-700 rounded-lg shadow-md">
+              <h3 className="text-sm font-medium text-blue-100 mb-2">TOTAL SALES THIS MONTH</h3>
+              <p className={`${robotoMono.className} text-4xl font-bold`}>${stats.totalSales}</p>
             </div>
             
-            <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
-              <h3 className="text-sm font-medium text-gray-600 mb-2">ORDERS THIS MONTH</h3>
-              <p className={`${robotoMono.className} text-4xl font-bold text-gray-900`}>{stats.totalOrders}</p>
+            <div className="p-6 bg-blue-700 rounded-lg shadow-md">
+              <h3 className="text-sm font-medium text-blue-100 mb-2">ORDERS THIS MONTH</h3>
+              <p className={`${robotoMono.className} text-4xl font-bold`}>{stats.totalOrders}</p>
             </div>
             
-            <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
-              <h3 className="text-sm font-medium text-gray-600 mb-2">AVG ORDER VALUE</h3>
-              <p className={`${robotoMono.className} text-4xl font-bold text-gray-900`}>${stats.avgOrderValue}</p>
+            <div className="p-6 bg-blue-700 rounded-lg shadow-md">
+              <h3 className="text-sm font-medium text-blue-100 mb-2">AVG ORDER VALUE</h3>
+              <p className={`${robotoMono.className} text-4xl font-bold`}>${stats.avgOrderValue}</p>
             </div>
           </div>
         </div>
@@ -242,7 +258,7 @@ export default function DashboardPage() {
             <h3 className="text-lg font-bold text-gray-900 mb-4">Top Restaurants by Sales</h3>
             <div className="h-64">
               {isClient && restaurantSales.labels.length > 0 ? (
-                <Pie data={pieChartData} />
+                <Pie data={pieChartData} options={{ plugins: { legend: { position: 'bottom' } } }} />
               ) : (
                 <div className="flex items-center justify-center h-full">
                   <p className="text-gray-500">No data available</p>
@@ -251,23 +267,23 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Order Statistics */}
-          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">All-Time Statistics</h3>
+          {/* Order Statistics - Green theme */}
+          <div className="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-lg shadow-lg text-white">
+            <h3 className="text-lg font-bold mb-4">All-Time Statistics</h3>
             <div className="grid grid-cols-1 gap-4 h-auto overflow-hidden">
-              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h4 className="text-sm font-medium text-gray-600 mb-1">TOTAL ORDERS</h4>
-                <p className={`${robotoMono.className} text-2xl font-bold text-gray-900`}>{allTimeStats.totalOrders}</p>
+              <div className="p-4 bg-green-700 rounded-lg shadow-md">
+                <h4 className="text-sm font-medium text-green-100 mb-1">TOTAL ORDERS</h4>
+                <p className={`${robotoMono.className} text-2xl font-bold`}>{allTimeStats.totalOrders}</p>
               </div>
               
-              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h4 className="text-sm font-medium text-gray-600 mb-1">TOTAL REVENUE</h4>
-                <p className={`${robotoMono.className} text-2xl font-bold text-gray-900`}>${allTimeStats.totalSales}</p>
+              <div className="p-4 bg-green-700 rounded-lg shadow-md">
+                <h4 className="text-sm font-medium text-green-100 mb-1">TOTAL REVENUE</h4>
+                <p className={`${robotoMono.className} text-2xl font-bold`}>${allTimeStats.totalSales}</p>
               </div>
               
-              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h4 className="text-sm font-medium text-gray-600 mb-1">AVERAGE ORDER VALUE</h4>
-                <p className={`${robotoMono.className} text-2xl font-bold text-gray-900`}>${allTimeStats.avgOrderValue}</p>
+              <div className="p-4 bg-green-700 rounded-lg shadow-md">
+                <h4 className="text-sm font-medium text-green-100 mb-1">AVERAGE ORDER VALUE</h4>
+                <p className={`${robotoMono.className} text-2xl font-bold`}>${allTimeStats.avgOrderValue}</p>
               </div>
             </div>
           </div>
@@ -298,23 +314,26 @@ export default function DashboardPage() {
               <h3 className="text-lg font-bold text-gray-900">Recent Activity</h3>
               <Link 
                 href="/history" 
-                className="text-sm text-gray-700 hover:text-gray-900"
+                className="text-sm font-medium text-blue-600 hover:text-blue-800"
               >
                 View All
               </Link>
             </div>
             
             {isClient && invoiceHistory.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {invoiceHistory.slice(0, 5).map((invoice) => (
-                  <div key={invoice.id} className="flex items-center p-3 border-b border-gray-100">
-                    <div className="flex-1">
+                  <div key={invoice.id} className="flex items-center p-3 border rounded-md hover:bg-gray-50">
+                    <div className="flex-shrink-0">
+                      <span className="material-icons text-blue-500">receipt</span>
+                    </div>
+                    <div className="flex-1 ml-3">
                       <p className="font-medium text-gray-900">{invoice.restaurant.name}</p>
                       <p className="text-sm text-gray-600">Invoice #{invoice.id}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-gray-900">${invoice.total.toFixed(2)}</p>
-                      <p className="text-xs text-gray-600">{new Date(invoice.date).toLocaleDateString()}</p>
+                      <p className="text-xs text-gray-500">{new Date(invoice.date).toLocaleDateString()}</p>
                     </div>
                   </div>
                 ))}
@@ -324,39 +343,23 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Quick Access */}
-          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Access</h3>
+          {/* Quick Access - Funner buttons */}
+          <div className="bg-gradient-to-bl from-amber-400 to-orange-500 p-6 rounded-lg shadow-lg">
+            <h3 className="text-lg font-bold text-white mb-4">Quick Access</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              <Link href="/search" className="p-4 flex flex-col items-center justify-center bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-                <span className="material-icons text-2xl text-gray-700 mb-2">search</span>
-                <span className="text-sm font-medium text-gray-900">Search</span>
-              </Link>
-              
-              <Link href="/restaurants" className="p-4 flex flex-col items-center justify-center bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-                <span className="material-icons text-2xl text-gray-700 mb-2">restaurant</span>
-                <span className="text-sm font-medium text-gray-900">Restaurants</span>
-              </Link>
-              
-              <Link href="/history" className="p-4 flex flex-col items-center justify-center bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-                <span className="material-icons text-2xl text-gray-700 mb-2">history</span>
-                <span className="text-sm font-medium text-gray-900">History</span>
-              </Link>
-              
-              <Link href="/stock" className="p-4 flex flex-col items-center justify-center bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-                <span className="material-icons text-2xl text-gray-700 mb-2">inventory</span>
-                <span className="text-sm font-medium text-gray-900">Stock</span>
-              </Link>
-              
-              <Link href="/todo" className="p-4 flex flex-col items-center justify-center bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-                <span className="material-icons text-2xl text-gray-700 mb-2">assignment</span>
-                <span className="text-sm font-medium text-gray-900">To-Do</span>
-              </Link>
-              
-              <Link href="/invoices" className="p-4 flex flex-col items-center justify-center bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-                <span className="material-icons text-2xl text-gray-700 mb-2">receipt</span>
-                <span className="text-sm font-medium text-gray-900">Invoices</span>
-              </Link>
+              {[ 
+                { href: "/search", icon: "search", label: "Search", color: "bg-blue-500 hover:bg-blue-600" },
+                { href: "/restaurants", icon: "restaurant", label: "Stores", color: "bg-green-500 hover:bg-green-600" },
+                { href: "/history", icon: "history", label: "History", color: "bg-purple-500 hover:bg-purple-600" },
+                { href: "/stock", icon: "inventory", label: "Stock", color: "bg-yellow-500 hover:bg-yellow-600 text-black" },
+                { href: "/todo", icon: "assignment", label: "To-Do", color: "bg-teal-500 hover:bg-teal-600" },
+                { href: "/invoices", icon: "receipt", label: "Invoice", color: "bg-indigo-500 hover:bg-indigo-600" }
+              ].map(link => (
+                <Link key={link.href} href={link.href} className={`p-4 flex flex-col items-center justify-center rounded-lg ${link.color} text-white shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-1`}>
+                  <span className="material-icons text-3xl mb-1">{link.icon}</span>
+                  <span className="text-sm font-semibold text-center">{link.label}</span>
+                </Link>
+              ))}
             </div>
           </div>
         </div>
