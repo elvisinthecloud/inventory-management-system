@@ -82,156 +82,263 @@ export default function HistoryPage() {
         // Create document
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.width;
-        const margin = 14;
+        const pageHeight = doc.internal.pageSize.height;
+        const margin = 15; // Standard margin
         
-        // Add company header
+        // Add a clean white background
+        doc.setFillColor(255, 255, 255);
+        doc.rect(0, 0, pageWidth, pageHeight, 'F');
+        
+        // Add a professional header bar
+        doc.setFillColor(16, 50, 120); // Deep professional blue
+        doc.rect(0, 0, pageWidth, 40, 'F'); // Square header
+        
+        // Add main title - Elite-Prod
+        doc.setTextColor(255, 255, 255);
         doc.setFontSize(20);
         doc.setFont('helvetica', 'bold');
         doc.text('Elite-Prod', margin, 20);
         
-        // Add company subtitle
-        doc.setFontSize(8);
+        // Add subtitle inside the header
+        doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text('Elite Products LLC', margin, 25);
-        
-        // Add subtle separator line
-        doc.setDrawColor(80, 80, 80);
-        doc.setLineWidth(0.5);
-        doc.line(margin, 30, pageWidth - margin, 30);
+        doc.text('Elite Products LLC', margin, 30);
         
         // Add invoice title
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(16);
         doc.text('INVOICE', pageWidth - margin, 20, { align: 'right' });
         
-        // Add invoice metadata
+        // Add invoice number
         doc.setFontSize(10);
+        doc.text(`#${invoice.id}`, pageWidth - margin, 30, { align: 'right' });
+        
+        // Invoice metadata section
+        doc.setDrawColor(230, 230, 230);
+        doc.setFillColor(248, 249, 250);
+        doc.rect(margin, 50, pageWidth - (margin * 2), 30, 'FD');
+        
+        // Add invoice metadata
+        doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
-        doc.text('INVOICE #:', margin, 40);
-        doc.text('DATE:', margin, 47);
-        doc.text('RESTAURANT:', margin, 54);
-        doc.text('CUISINE:', margin, 61);
+        doc.setTextColor(80, 80, 80);
+        doc.text('INVOICE DATE:', margin + 6, 60);
+        doc.text('RESTAURANT:', margin + 6, 70);
+        doc.text('CUISINE:', pageWidth / 2, 70);
         
         // Add invoice metadata values
         doc.setFont('helvetica', 'normal');
-        doc.text(invoice.id.toString(), margin + 30, 40);
-        doc.text(invoice.date, margin + 30, 47);
-        doc.text(invoice.restaurant.name, margin + 30, 54);
-        doc.text(invoice.restaurant.cuisine, margin + 30, 61);
+        doc.setTextColor(60, 60, 60);
+        doc.text(invoice.date, margin + 50, 60);
+        doc.text(invoice.restaurant.name, margin + 50, 70);
+        doc.text(invoice.restaurant.cuisine, pageWidth / 2 + 30, 70);
         
-        // Add billing summary label
+        // Add a light gray separator line
+        doc.setDrawColor(220, 220, 220);
+        doc.setLineWidth(0.5);
+        doc.line(margin, 88, pageWidth - margin, 88);
+        
+        // Calculate content height based on items - use smaller height per item
+        const itemCount = invoice.items.length;
+        const creditCount = invoice.credits?.length || 0;
+        const itemHeight = 9; // Reduced height per item row (was 12)
+        const itemSpacing = 1; // Additional spacing between items
+        
+        // ORDER ITEMS SECTION
+        doc.setFillColor(16, 50, 120); // Deep professional blue
+        doc.rect(margin, 95, pageWidth - (margin * 2), 10, 'F');
+        doc.setTextColor(255, 255, 255);
         doc.setFont('helvetica', 'bold');
-        doc.text('ITEMS', margin, 75);
+        doc.setFontSize(10);
+        doc.text('ORDER ITEMS', margin + 5, 102);
         
-        // Add another separator line
-        doc.setDrawColor(180, 180, 180);
-        doc.setLineWidth(0.2);
-        doc.line(margin, 78, pageWidth - margin, 78);
+        // Table header
+        const yPos = 112; // Slightly reduced from 115
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor(80, 80, 80);
         
-        // Add items table with clean black and white style
-        const tableColumn = ["Item", "Category", "Price", "Qty", "Total"];
-        const tableRows = invoice.items.map((item: any) => [
-          item.name,
-          item.category,
-          `$${item.price.toFixed(2)}`,
-          item.quantity,
-          `$${(item.price * item.quantity).toFixed(2)}`
-        ]);
+        // Adjusted column positions for better alignment
+        const colItem = margin + 5;
+        const colCategory = margin + 75;
+        const colPrice = margin + 120;
+        const colQty = margin + 145;
+        const colTotal = margin + 170;
         
-        // Use autoTable with professional black and white theme
-        jsPDFAutoTable.default(doc, {
-          startY: 83,
-          head: [tableColumn],
-          body: tableRows,
-          theme: 'plain',
-          styles: {
-            fontSize: 9,
-            cellPadding: 4,
-          },
-          headStyles: {
-            fillColor: [240, 240, 240],
-            textColor: [0, 0, 0],
-            fontStyle: 'bold',
-            lineWidth: 0.1,
-            lineColor: [200, 200, 200],
-          },
-          bodyStyles: {
-            lineWidth: 0.1,
-            lineColor: [220, 220, 220],
-          },
-          alternateRowStyles: {
-            fillColor: [248, 248, 248],
-          },
-          margin: { left: margin, right: margin },
-        });
+        // Column headers with clean underline
+        doc.text('Item', colItem, yPos);
+        doc.text('Category', colCategory, yPos);
+        doc.text('Price', colPrice, yPos);
+        doc.text('Qty', colQty, yPos);
+        doc.text('Total', colTotal, yPos);
         
-        // Get the Y position after the items table
-        let finalY = (doc as any).lastAutoTable.finalY + 10;
+        // Header underline
+        doc.setDrawColor(200, 200, 200);
+        doc.line(margin, yPos + 4, pageWidth - margin, yPos + 4);
         
-        // Add credits table if there are any credits
-        if (invoice.credits && invoice.credits.length > 0) {
-          doc.setFontSize(12);
-          doc.setFont('helvetica', 'bold');
-          doc.text('CREDITS', margin, finalY + 5);
+        // Add table content
+        let contentYPos = yPos + 10; // Reduced from +12
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8); // Reduced from 9
+        doc.setTextColor(60, 60, 60);
+        
+        // Add alternating row backgrounds
+        let isAlternate = false;
+        
+        // Determine maximum items to show - more generous limit now with compact design
+        const maxItemsToShow = Math.min(
+          invoice.items.length,
+          25 // Increased from 20
+        );
+        
+        for (let i = 0; i < maxItemsToShow; i++) {
+          const item = invoice.items[i];
           
-          // Add separator line for credits
-          doc.setDrawColor(180, 180, 180);
-          doc.setLineWidth(0.2);
-          doc.line(margin, finalY + 8, pageWidth - margin, finalY + 8);
+          if (isAlternate) {
+            doc.setFillColor(245, 245, 250);
+            doc.rect(margin, contentYPos - 5, pageWidth - (margin * 2), 8, 'F'); // Reduced height
+          }
           
-          const creditTableColumn = ["Description", "Amount", "Qty", "Total"];
-          const creditTableRows = invoice.credits.map((credit: any) => [
-            credit.name,
-            `$${Math.abs(credit.price).toFixed(2)}`,
-            credit.quantity,
-            `-$${Math.abs(credit.price * credit.quantity).toFixed(2)}`
-          ]);
+          // Truncate item name if too long
+          const itemName = item.name.length > 25 ? item.name.substring(0, 22) + '...' : item.name;
+          const catName = item.category.length > 15 ? item.category.substring(0, 12) + '...' : item.category;
           
-          jsPDFAutoTable.default(doc, {
-            startY: finalY + 13,
-            head: [creditTableColumn],
-            body: creditTableRows,
-            theme: 'plain',
-            styles: {
-              fontSize: 9,
-              cellPadding: 4,
-            },
-            headStyles: {
-              fillColor: [240, 255, 240], // Light green background for credits
-              textColor: [0, 100, 0], // Dark green text
-              fontStyle: 'bold',
-              lineWidth: 0.1,
-              lineColor: [200, 200, 200],
-            },
-            bodyStyles: {
-              lineWidth: 0.1,
-              lineColor: [220, 220, 220],
-              textColor: [0, 100, 0], // Dark green text
-            },
-            alternateRowStyles: {
-              fillColor: [248, 255, 248], // Light green alternate rows
-            },
-            margin: { left: margin, right: margin },
-          });
+          doc.text(itemName, colItem, contentYPos);
+          doc.text(catName, colCategory, contentYPos);
+          doc.text(`$${item.price.toFixed(2)}`, colPrice, contentYPos);
+          doc.text(item.quantity.toString(), colQty, contentYPos);
+          doc.text(`$${(item.price * item.quantity).toFixed(2)}`, colTotal, contentYPos);
           
-          finalY = (doc as any).lastAutoTable.finalY + 10;
+          contentYPos += itemHeight + itemSpacing;
+          isAlternate = !isAlternate;
+          
+          // Check if we're approaching the bottom of the page
+          if (contentYPos > pageHeight - 75) {
+            break;
+          }
         }
         
-        // Add summary section
-        doc.setDrawColor(180, 180, 180);
-        doc.line(pageWidth - 80, finalY - 5, pageWidth - margin, finalY - 5);
+        // If we had to truncate items, add an indicator
+        if (invoice.items.length > maxItemsToShow) {
+          doc.setFont('helvetica', 'italic');
+          doc.setTextColor(100, 100, 100);
+          doc.text(`+ ${invoice.items.length - maxItemsToShow} more items`, margin + 5, contentYPos);
+          contentYPos += 8; // Reduced from 12
+        }
+        
+        // End of items section with a line
+        doc.setDrawColor(220, 220, 220);
+        doc.line(margin, contentYPos, pageWidth - margin, contentYPos);
+        contentYPos += 10; // Reduced from 15
+        
+        // Add credits if there are any
+        if (invoice.credits && invoice.credits.length > 0) {
+          // Credits header
+          doc.setFillColor(80, 130, 50); // Professional green
+          doc.rect(margin, contentYPos, pageWidth - (margin * 2), 10, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(10);
+          doc.text('CREDITS', margin + 5, contentYPos + 7);
+          contentYPos += 15; // Reduced from 20
+          
+          // Credit headers
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(9);
+          doc.setTextColor(80, 80, 80);
+          
+          // Column headers for credits
+          doc.text('Description', colItem, contentYPos);
+          doc.text('Amount', colPrice, contentYPos);
+          doc.text('Qty', colQty, contentYPos);
+          doc.text('Total', colTotal, contentYPos);
+          
+          // Header underline
+          doc.setDrawColor(200, 200, 200);
+          doc.line(margin, contentYPos + 4, pageWidth - margin, contentYPos + 4);
+          contentYPos += 10; // Reduced from 12
+          
+          // Credits content
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8); // Reduced from 9
+          isAlternate = false;
+          
+          // Calculate max credits to show
+          const maxCreditsToShow = Math.min(
+            invoice.credits.length,
+            10 // Reasonable max
+          );
+          
+          for (let i = 0; i < maxCreditsToShow; i++) {
+            const credit = invoice.credits[i];
+            
+            if (isAlternate) {
+              doc.setFillColor(245, 245, 250);
+              doc.rect(margin, contentYPos - 5, pageWidth - (margin * 2), 8, 'F'); // Reduced height
+            }
+            
+            // Truncate description if too long
+            const creditName = credit.name.length > 30 ? credit.name.substring(0, 27) + '...' : credit.name;
+            
+            doc.setTextColor(60, 60, 60);
+            doc.text(creditName, colItem, contentYPos);
+            doc.text(`$${Math.abs(credit.price).toFixed(2)}`, colPrice, contentYPos);
+            doc.text(credit.quantity.toString(), colQty, contentYPos);
+            doc.setTextColor(80, 130, 50); // Green for credit amounts
+            doc.text(`-$${Math.abs(credit.price * credit.quantity).toFixed(2)}`, colTotal, contentYPos);
+            
+            contentYPos += itemHeight + itemSpacing;
+            isAlternate = !isAlternate;
+            
+            // Check if we're approaching the bottom of the page
+            if (contentYPos > pageHeight - 75) {
+              break;
+            }
+          }
+          
+          // If we had to truncate credits, add an indicator
+          if (invoice.credits.length > maxCreditsToShow) {
+            doc.setFont('helvetica', 'italic');
+            doc.setTextColor(100, 100, 100);
+            doc.text(`+ ${invoice.credits.length - maxCreditsToShow} more credits`, colItem, contentYPos);
+            contentYPos += 8; // Reduced from 12
+          }
+          
+          // End of credits section with a line
+          doc.setDrawColor(220, 220, 220);
+          doc.line(margin, contentYPos, pageWidth - margin, contentYPos);
+          contentYPos += 10; // Reduced from 15
+        }
+        
+        // SUMMARY SECTION (always shown at the bottom)
+        const footerY = pageHeight - 20;
+        const footerLineY = footerY - 5;
+        const summaryBoxHeight = 50; // Slightly reduced height
+        const minSpaceBetweenSummaryAndFooter = 15; // Minimum space between summary box and footer line
+        
+        // Calculate summary Y position to avoid footer overlap
+        const maxSummaryY = footerLineY - summaryBoxHeight - minSpaceBetweenSummaryAndFooter;
+        
+        // Ensure summary box doesn't overlap with content - add buffer space
+        const bufferSpace = 10; // Buffer space between content and summary
+        const summaryY = Math.min(contentYPos + bufferSpace, maxSummaryY);
+        
+        // Summary box - light gray background
+        doc.setFillColor(248, 249, 250);
+        doc.rect(pageWidth / 2, summaryY, pageWidth / 2 - margin, summaryBoxHeight, 'F');
         
         // Add summary items
-        const summaryX = pageWidth - 80;
-        const valueX = pageWidth - margin;
+        const summaryStartX = pageWidth / 2 + 5;
+        const valueX = pageWidth - margin - 5;
+        let summaryItemY = summaryY + 10; // Reduced from 12
         
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
-        doc.text('Subtotal:', summaryX, finalY, { align: 'left' });
-        doc.text(`$${invoice.subtotal.toFixed(2)}`, valueX, finalY, { align: 'right' });
+        doc.setTextColor(80, 80, 80);
+        doc.text('Subtotal:', summaryStartX, summaryItemY);
+        doc.text(`$${invoice.subtotal.toFixed(2)}`, valueX, summaryItemY, { align: 'right' });
         
         // If there are credits, show them in the summary
-        let currY = finalY;
         if (invoice.credits && invoice.credits.length > 0) {
           const creditsTotal = invoice.credits.reduce(
             (total: number, credit: any) => total + (credit.price * credit.quantity), 
@@ -239,36 +346,44 @@ export default function HistoryPage() {
           );
           
           if (creditsTotal !== 0) {
-            currY += 7;
-            doc.setTextColor(0, 100, 0); // Green for credits
-            doc.text('Credits:', summaryX, currY, { align: 'left' });
-            doc.text(`-$${Math.abs(creditsTotal).toFixed(2)}`, valueX, currY, { align: 'right' });
-            doc.setTextColor(0, 0, 0); // Reset to black
+            summaryItemY += 9; // Reduced from 10
+            doc.setTextColor(80, 130, 50); // Green for credit amounts
+            doc.text('Credits:', summaryStartX, summaryItemY);
+            doc.text(`-$${Math.abs(creditsTotal).toFixed(2)}`, valueX, summaryItemY, { align: 'right' });
+            doc.setTextColor(80, 80, 80); // Reset to gray
           }
         }
         
-        doc.text('Tax (6%):', summaryX, currY + 7, { align: 'left' });
-        doc.text(`$${invoice.tax.toFixed(2)}`, valueX, currY + 7, { align: 'right' });
+        summaryItemY += 9; // Reduced from 10
+        doc.text('Tax (6%):', summaryStartX, summaryItemY);
+        doc.text(`$${invoice.tax.toFixed(2)}`, valueX, summaryItemY, { align: 'right' });
         
-        doc.text('Delivery Fee:', summaryX, currY + 14, { align: 'left' });
-        doc.text(`$${invoice.deliveryFee.toFixed(2)}`, valueX, currY + 14, { align: 'right' });
+        summaryItemY += 9; // Reduced from 10
+        doc.text('Delivery Fee:', summaryStartX, summaryItemY);
+        doc.text(`$${invoice.deliveryFee.toFixed(2)}`, valueX, summaryItemY, { align: 'right' });
         
         // Total with stronger emphasis
-        doc.setDrawColor(100, 100, 100);
-        doc.line(pageWidth - 80, currY + 18, pageWidth - margin, currY + 18);
+        summaryItemY += 5; // Reduced from 6
+        doc.setDrawColor(180, 180, 180);
+        doc.line(summaryStartX, summaryItemY, valueX, summaryItemY);
         
+        summaryItemY += 8; // Reduced from 10
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(11);
-        doc.text('TOTAL:', summaryX, currY + 25, { align: 'left' });
-        doc.text(`$${invoice.total.toFixed(2)}`, valueX, currY + 25, { align: 'right' });
+        doc.setFontSize(10); // Reduced from 11
+        doc.setTextColor(16, 50, 120); // Match header blue
+        doc.text('TOTAL:', summaryStartX, summaryItemY);
+        doc.text(`$${invoice.total.toFixed(2)}`, valueX, summaryItemY, { align: 'right' });
         
         // Add footer
+        doc.setLineWidth(0.5);
+        doc.setDrawColor(200, 200, 200);
+        doc.line(margin, footerLineY, pageWidth - margin, footerLineY);
+        
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
-        doc.setDrawColor(120, 120, 120);
-        doc.line(margin, 270, pageWidth - margin, 270);
-        doc.text('Thank you for your business', pageWidth / 2, 277, { align: 'center' });
-        doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, 282, { align: 'center' });
+        doc.setTextColor(120, 120, 120);
+        doc.text('Thank you for your business', pageWidth / 2, footerY, { align: 'center' });
+        doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, footerY + 6, { align: 'center' });
         
         // Save the PDF
         doc.save(`Invoice_${invoice.id}.pdf`);
