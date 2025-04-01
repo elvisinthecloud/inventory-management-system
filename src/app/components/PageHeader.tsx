@@ -18,7 +18,7 @@ export default function PageHeader({ title, withAction, fullWidth = false }: Pag
       <div className="px-4 sm:px-6 lg:px-8 py-4 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center mb-3 sm:mb-0">
-            <h1 className={`${robotoMono.className} text-xl sm:text-2xl font-semibold uppercase tracking-wide text-gray-900`}>
+            <h1 className={`${robotoMono.className} text-2xl sm:text-3xl font-bold text-gray-900`}>
               {title}
             </h1>
           </div>

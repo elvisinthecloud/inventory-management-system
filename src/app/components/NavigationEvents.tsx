@@ -19,22 +19,14 @@ export function NavigationEvents() {
       stopLoading();
     }, 500); // Delay to allow rendering
     
-    // Safety timer to ensure it stops eventually
-    const safetyTimer = setTimeout(() => {
-      console.log('NavigationEvents: Safety timer triggered');
-      stopLoading(); 
-    }, 3000); 
-    
-    // Cleanup function: clear timers and ensure loading stops if unmounted quickly
+    // Cleanup function: only clear the pending timer
     return () => {
-      console.log('NavigationEvents: Cleanup');
+      console.log('NavigationEvents: Cleanup - clearing timer');
       clearTimeout(timer);
-      clearTimeout(safetyTimer);
-      stopLoading(); 
     };
     
   // Effect runs when route changes. We don't need start/stop in deps.
-  }, [pathname, searchParams]); 
+  }, [pathname, searchParams, stopLoading]); // Added stopLoading to dependency array as it's used in the effect
 
   return null;
 } 

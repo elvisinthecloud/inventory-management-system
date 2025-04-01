@@ -59,6 +59,7 @@ export default function SearchPage() {
   
   // Load categories from localStorage products
   useEffect(() => {
+    console.log('SearchPage: useEffect started'); // Log start
     try {
       console.log('Loading categories from localStorage');
       const productsJson = localStorage.getItem('products');
@@ -67,41 +68,29 @@ export default function SearchPage() {
         const products = JSON.parse(productsJson) as Product[];
         console.log('Products loaded:', products.length);
         
-        // Get unique categories from products
+        // --- Start of complex category logic ---
         const uniqueCategories: Category[] = [];
         const categoryNames = new Set<string>();
         const categoryMap = new Map<string, { id: number, name: string }>();
         
-        // First collect all category names from products and track used IDs
         const usedCategoryIds = new Set<number>();
-        
-        // Add all default category IDs to the used set
         Object.values(DEFAULT_CATEGORY_MAP).forEach(id => {
           usedCategoryIds.add(id);
         });
         
-        // Debug log
-        console.log('Default category IDs:', Array.from(usedCategoryIds));
-        
-        // First pass: map the default categories and existing categories with IDs
         products.forEach((product: Product) => {
           if (product.category && !categoryNames.has(product.category)) {
             categoryNames.add(product.category);
-            
-            // Check if it's a default category first
             if (DEFAULT_CATEGORY_MAP[product.category] !== undefined) {
               const categoryId = DEFAULT_CATEGORY_MAP[product.category];
               usedCategoryIds.add(categoryId);
-              
               categoryMap.set(product.category, {
                 id: categoryId,
                 name: product.category,
               });
             } 
-            // Otherwise use the product's categoryId if available
             else if (product.categoryId) {
               usedCategoryIds.add(product.categoryId);
-              
               categoryMap.set(product.category, {
                 id: product.categoryId,
                 name: product.category,
@@ -110,19 +99,13 @@ export default function SearchPage() {
           }
         });
         
-        // Second pass: handle categories that need new IDs
         products.forEach((product: Product) => {
           if (product.category && !categoryMap.has(product.category)) {
-            // Generate a new unique ID
             let newId = Object.keys(DEFAULT_CATEGORY_MAP).length + 1;
-            
-            // Make sure the ID isn't already used
             while (usedCategoryIds.has(newId)) {
               newId++;
             }
-            
             usedCategoryIds.add(newId);
-            
             categoryMap.set(product.category, {
               id: newId,
               name: product.category,
@@ -130,35 +113,29 @@ export default function SearchPage() {
           }
         });
         
-        // Then construct categories, maintaining default images where possible
         categoryNames.forEach(categoryName => {
           const category = categoryMap.get(categoryName);
-          if (!category) return; // Skip if no category mapping found
-          
+          if (!category) return;
           const existingCategory = defaultCategories.find(c => c.name === categoryName);
-          
           uniqueCategories.push({
             id: category.id,
             name: categoryName,
-            // Use existing image or fallback to a default image
             image: existingCategory ? existingCategory.image : '/images/categories/default.jpg'
           });
         });
+        // --- End of complex category logic ---
         
-        console.log('Final categories to render:', uniqueCategories.map(c => ({ id: c.id, name: c.name })));
+        console.log('Final categories derived:', uniqueCategories.map(c => ({ id: c.id, name: c.name })));
         
-        // Verify no duplicate IDs
         const categoryIds = uniqueCategories.map(c => c.id);
         const hasDuplicateIds = categoryIds.length !== new Set(categoryIds).size;
         if (hasDuplicateIds) {
           console.warn('WARNING: Duplicate category IDs before setting state:', 
             categoryIds.filter((id, index) => categoryIds.indexOf(id) !== index));
           
-          // De-duplicate by making new IDs for duplicates
           const seenIds = new Set<number>();
           const dedupedCategories = uniqueCategories.map(category => {
             if (seenIds.has(category.id)) {
-              // Create a new ID by adding a large offset
               return { ...category, id: category.id + 10000 };
             }
             seenIds.add(category.id);
@@ -166,16 +143,29 @@ export default function SearchPage() {
           });
           
           setCategories(dedupedCategories);
+          console.log('SearchPage: Categories state updated (with deduplication).');
         } else if (uniqueCategories.length > 0) {
           setCategories(uniqueCategories);
+          console.log('SearchPage: Categories state updated.');
+        } else {
+          // Fallback if no unique categories derived but products existed
+          setCategories(defaultCategories);
+          console.log('SearchPage: Categories state set to default (no unique derived).');
         }
+      } else {
+        // No products in localStorage, use default
+        setCategories(defaultCategories);
+        console.log('SearchPage: No products in localStorage, Categories state set to default.');
       }
+      console.log('SearchPage: useEffect finished successfully.'); // Log success
     } catch (error) {
-      console.error('Error processing categories:', error);
-      // Fallback to default categories
+      // Catch and log any error during the process
+      console.error('SearchPage: Error in useEffect while processing categories:', error);
+      // Fallback to default categories in case of error
       setCategories(defaultCategories);
+      console.log('SearchPage: Categories state set to default due to error.');
     }
-  }, []);
+  }, []); // Dependency array is empty, runs once on mount
 
   return (
     <div className={`flex flex-col min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 ${geistSans.className}`}>
@@ -184,7 +174,7 @@ export default function SearchPage() {
         title="PRODUCT CATALOG" 
         fullWidth={true}
         withAction={
-          <div className="text-gray-300 text-sm font-medium">
+          <div className="text-gray-600 text-sm font-medium">
             {new Date().toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'short', day: 'numeric'})}
           </div>
         }
