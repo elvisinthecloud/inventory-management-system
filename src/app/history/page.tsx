@@ -52,12 +52,15 @@ export default function HistoryPage() {
             block: 'start'
           });
           
-          // Add a temporary highlight effect
-          element.classList.add('bg-blue-50');
+          // Add highlighting animation for visual feedback
+          element.classList.add('highlighted-invoice');
+          
+          // Remove the highlight class after animation completes
           setTimeout(() => {
-            element.classList.remove('bg-blue-50');
-            element.classList.add('bg-white');
-          }, 2000);
+            element.classList.remove('highlighted-invoice');
+            // Keep a subtle highlight to maintain awareness
+            element.classList.add('soft-highlight');
+          }, 3000);
         }
       }, 100);
     }
@@ -275,6 +278,30 @@ export default function HistoryPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
+      <style jsx global>{`
+        @keyframes pulse-border {
+          0% {
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5);
+          }
+          70% {
+            box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+          }
+        }
+        .highlighted-invoice {
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+          animation: pulse-border 2s ease-in-out 3;
+          border-color: #3b82f6;
+          background-color: #eff6ff;
+        }
+        .soft-highlight {
+          box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+          border-color: #93c5fd;
+        }
+      `}</style>
+
       {/* Full-width header */}
       <PageHeader 
         title="INVOICE HISTORY" 
@@ -315,7 +342,7 @@ export default function HistoryPage() {
                   ref={el => {
                     invoiceRefs.current[invoice.id] = el;
                   }} // Add ref for programmatic scrolling
-                  className="rounded-lg border border-gray-300 bg-white p-4 shadow-md sm:p-6 transition-colors duration-500"
+                  className="rounded-lg border border-gray-300 bg-white p-4 shadow-md sm:p-6 transition-all duration-300 hover:shadow-lg hover:border-blue-300"
                 >
                   <div className="mb-4 flex justify-between">
                     <div>
