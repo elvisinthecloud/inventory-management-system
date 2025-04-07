@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 @import "tailwindcss";
 
 :root {
@@ -25,9 +26,6 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   overflow-x: hidden; /* Prevent horizontal scrolling */
 }
-
-/* Ensure Material Icons are loaded */
-@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
 /* Toastify styling adjustments */
 .Toastify__toast-container {
