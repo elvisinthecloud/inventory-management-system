@@ -1,16 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useInvoice } from '../context/InvoiceContext';
-import { Roboto_Mono } from "next/font/google";
+import { useInvoice, InvoiceHistoryItem, CreditItem } from '../context/InvoiceContext';
 import Link from 'next/link';
 import PageHeader from '@/app/components/PageHeader';
-import { useSearchParams } from 'next/navigation';
-
-const robotoMono = Roboto_Mono({
-  weight: '700',
-  subsets: ['latin'],
-});
 
 // ClientOnly component to prevent hydration errors
 function ClientOnly({ children }: { children: React.ReactNode }) {
@@ -74,13 +67,16 @@ export default function HistoryPage() {
     return `${month}/${day}/${year}`;
   };
 
-  const handleDownloadPDF = (invoice: any) => {
+  const handleDownloadPDF = (invoice: InvoiceHistoryItem) => {
     // Import jsPDF with proper type definition
     import('jspdf').then(({ default: jsPDF }) => {
       // Import autoTable dynamically
-      import('jspdf-autotable').then((jsPDFAutoTable) => {
+      import('jspdf-autotable').then((module) => {
         // Create document
         const doc = new jsPDF();
+        // Apply autoTable to document if needed
+        module.default(doc, { /* table configuration */ });
+        
         const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
         const margin = 15; // Standard margin
@@ -149,10 +145,8 @@ export default function HistoryPage() {
         doc.setLineWidth(0.5);
         doc.line(margin, 88, pageWidth - margin, 88);
         
-        // Calculate content height based on items - use smaller height per item
-        const itemCount = invoice.items.length;
-        const creditCount = invoice.credits?.length || 0;
-        const itemHeight = 9; // Reduced height per item row (was 12)
+        // Define item height and spacing - needed for table layout
+        const itemHeight = 9; // Reduced height per item row
         const itemSpacing = 1; // Additional spacing between items
         
         // ORDER ITEMS SECTION
@@ -353,7 +347,7 @@ export default function HistoryPage() {
         // If there are credits, show them in the summary
         if (invoice.credits && invoice.credits.length > 0) {
           const creditsTotal = invoice.credits.reduce(
-            (total: number, credit: any) => total + (credit.price * credit.quantity), 
+            (total: number, credit: CreditItem) => total + (credit.price * credit.quantity), 
             0
           );
           
@@ -461,7 +455,7 @@ export default function HistoryPage() {
             <div className="my-6 rounded-lg border border-gray-300 bg-white p-8 text-center shadow-md">
               <span className="material-icons mb-4 text-6xl text-gray-400">history</span>
               <h2 className="mb-4 text-2xl font-bold text-gray-800">No Invoice History</h2>
-              <p className="mb-8 text-gray-600">You haven't created any invoices yet.</p>
+              <p className="mb-8 text-gray-600">You haven&apos;t created any invoices yet.</p>
               <Link 
                 href="/restaurants" 
                 className="inline-flex items-center justify-center rounded-md bg-gray-800 px-6 py-3 text-white hover:bg-gray-700"
@@ -533,7 +527,7 @@ export default function HistoryPage() {
                   
                   <div className="text-sm text-gray-700">
                     {/* Show items */}
-                    {invoice.items.slice(0, 3).map((item: any, i: number) => (
+                    {invoice.items.slice(0, 3).map((item, i) => (
                       <div key={i} className="mb-1">
                         {item.quantity} × {item.name}
                       </div>
@@ -548,7 +542,7 @@ export default function HistoryPage() {
                     {invoice.credits && invoice.credits.length > 0 && (
                       <div className="mt-2 border-t border-gray-200 pt-2">
                         <div className="text-sm font-medium text-green-600">Credits:</div>
-                        {invoice.credits.map((credit: any, i: number) => (
+                        {invoice.credits.map((credit, i) => (
                           <div key={i} className="mb-1 text-green-600">
                             {credit.quantity} × {credit.name} (-${Math.abs(credit.price).toFixed(2)})
                           </div>

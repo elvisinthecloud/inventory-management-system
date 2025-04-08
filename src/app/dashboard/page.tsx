@@ -49,7 +49,7 @@ export default function DashboardPage() {
     
     return {
       labels: topRestaurants.map(([name]) => name),
-      data: topRestaurants.map(([_, value]) => value)
+      data: topRestaurants.map(([, count]) => count)
     };
   }, [invoiceHistory, isClient]);
 

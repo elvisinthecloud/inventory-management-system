@@ -1,16 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useInvoice, CreditItem } from '../context/InvoiceContext';
-import { Roboto_Mono } from "next/font/google";
+import { useInvoice } from '../context/InvoiceContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/app/components/PageHeader';
-
-const robotoMono = Roboto_Mono({
-  weight: '700',
-  subsets: ['latin'],
-});
 
 export default function InvoicesPage() {
   const { 
@@ -23,8 +17,7 @@ export default function InvoicesPage() {
     creditsTotal,
     addCredit,
     removeCredit,
-    updateCreditQuantity,
-    getProductStock 
+    updateCreditQuantity 
   } = useInvoice();
   const router = useRouter();
   
@@ -45,7 +38,7 @@ export default function InvoicesPage() {
       if (productsJson) {
         try {
           const products = JSON.parse(productsJson);
-          let itemsWithLowStock: Array<{ name: string; original: number; adjusted: number }> = [];
+          const itemsWithLowStock: Array<{ name: string; original: number; adjusted: number }> = [];
           let adjustments = false;
           
           // Check each invoice item against current stock

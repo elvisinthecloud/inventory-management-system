@@ -1,19 +1,19 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useInvoice } from '../context/InvoiceContext';
 import { Geist } from "next/font/google";
-import SearchBar from '@/app/components/SearchBar';
-import CategoryGrid from '@/app/components/CategoryGrid';
-import { useInvoice } from '@/app/context/InvoiceContext';
+import CategoryGrid from '../components/CategoryGrid';
+import SearchBar from '../components/SearchBar';
 import PageHeader from '@/app/components/PageHeader';
 
-// Use Geist Sans for the page
+// Apply Geist font
 const geistSans = Geist({
   weight: '400',
   subsets: ['latin'],
 });
 
-// Define interfaces
+// Define interfaces for category and product
 interface Category {
   id: number;
   name: string;
@@ -29,33 +29,33 @@ interface Product {
   stock: number;
 }
 
-// Default categories data with images
+// Default categories if localStorage data is not available
 const defaultCategories: Category[] = [
-  // { id: 1, name: 'Spices', image: '/images/categories/spices.jpg' },
-  { id: 2, name: 'Hierbas', image: '/images/categories/herbs.jpg' },
-  // { id: 3, name: 'Ice Cream', image: '/images/categories/icecream.jpg' },
-  // { id: 4, name: 'Vegetables', image: '/images/categories/vegetables.jpg' },
-  // { id: 5, name: 'Fruits', image: '/images/categories/fruits.jpg' },
-  // { id: 6, name: 'Dairy', image: '/images/categories/dairy.jpg' },
-  { id: 7, name: 'Chiles', image: '/images/categories/default.jpg' },
-  { id: 8, name: 'Especias', image: '/images/categories/default.jpg' }
+  { id: 1, name: 'Condimentos', image: '/images/categories/condimentos.jpg' },
+  { id: 2, name: 'Granos y Legumbres', image: '/images/categories/granos.jpg' },
+  { id: 3, name: 'Bebidas', image: '/images/categories/bebidas.jpg' },
+  { id: 4, name: 'Frescos', image: '/images/categories/frescos.jpg' },
+  { id: 5, name: 'Frutas y Vegetales', image: '/images/categories/frutas.jpg' },
+  { id: 6, name: 'Lacteos', image: '/images/categories/lacteos.jpg' },
+  { id: 7, name: 'Chiles', image: '/images/categories/chiles.jpg' },
+  { id: 8, name: 'Especias', image: '/images/categories/especias.jpg' },
 ];
 
-// Define a consistent mapping of default category names to IDs
-const DEFAULT_CATEGORY_MAP: {[key: string]: number} = {
-  // 'Spices': 1,
-  'Hierbas': 2,
-  // 'Ice Cream': 3,
-  // 'Vegetables': 4,
-  // 'Fruits': 5,
-  // 'Dairy': 6,
+// This mapping is used to ensure consistent category IDs for known categories
+const DEFAULT_CATEGORY_MAP: Record<string, number> = {
+  'Condimentos': 1,
+  'Granos y Legumbres': 2,
+  'Bebidas': 3,
+  'Frescos': 4,
+  'Frutas y Vegetales': 5,
+  'Lacteos': 6,
   'Chiles': 7,
   'Especias': 8
 };
 
 export default function SearchPage() {
   const [categories, setCategories] = useState<Category[]>(defaultCategories);
-  const { getProductStock } = useInvoice();
+  const { } = useInvoice();
   
   // Load categories from localStorage products
   useEffect(() => {

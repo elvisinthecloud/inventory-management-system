@@ -1,21 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Geist, Roboto_Mono } from "next/font/google";
-import Link from 'next/link';
 import { useInvoice } from '../context/InvoiceContext';
 import AddProductModal from '../components/AddProductModal';
 import PageHeader from '@/app/components/PageHeader';
-
-const geistSans = Geist({
-  weight: '400',
-  subsets: ['latin'],
-});
-
-const robotoMono = Roboto_Mono({
-  weight: '700',
-  subsets: ['latin'],
-});
 
 // Define product type
 interface Product {

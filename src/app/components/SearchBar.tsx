@@ -9,6 +9,12 @@ interface SearchBarProps {
   placeholder: string;
 }
 
+// Add product interface
+interface Product {
+  name: string;
+  [key: string]: string | number | boolean; // More specific type instead of any
+}
+
 export default function SearchBar({ placeholder }: SearchBarProps) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -33,15 +39,15 @@ export default function SearchBar({ placeholder }: SearchBarProps) {
       try {
         const productsJson = localStorage.getItem('products');
         if (productsJson) {
-          const products = JSON.parse(productsJson);
+          const products = JSON.parse(productsJson) as Product[];
           // Filter products based on search term
           const filteredProducts = products
-            .filter((product: any) => 
+            .filter((product: Product) => 
               product.name.toLowerCase().includes(searchTerm.toLowerCase())
             )
             .slice(0, 5); // Limit to 5 suggestions
           
-          setSuggestions(filteredProducts.map((p: any) => p.name));
+          setSuggestions(filteredProducts.map((p: Product) => p.name));
           setShowSuggestions(true);
         }
       } catch (error) {

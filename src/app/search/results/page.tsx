@@ -1,17 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Geist, Roboto_Mono } from "next/font/google";
+import { Roboto_Mono } from "next/font/google";
 import SearchBar from '@/app/components/SearchBar';
 import Link from 'next/link';
 import ProductCard from '@/app/components/ProductCard';
 import { useInvoice } from '@/app/context/InvoiceContext';
 import { useSearchParams } from 'next/navigation';
-
-const geistSans = Geist({
-  weight: '400',
-  subsets: ['latin'],
-});
 
 const robotoMono = Roboto_Mono({
   weight: '700',
@@ -64,7 +59,7 @@ export default function SearchResults() {
     if (productsJson) {
       // If products exist in localStorage, use them
       const savedProducts = JSON.parse(productsJson);
-      productsToUse = savedProducts.map((product: any) => ({
+      productsToUse = savedProducts.map((product: Product) => ({
         ...product,
         stock: getProductStock(product.id)
       }));
@@ -125,7 +120,7 @@ export default function SearchResults() {
             <div>
               <p className="text-lg text-gray-700 mb-1">
                 {query ? (
-                  <>Showing results for <span className="font-semibold text-gray-900">"{query}"</span></>
+                  <>Showing results for <span className="font-semibold text-gray-900">&quot;{query}&quot;</span></>
                 ) : (
                   'Please enter a search term'
                 )}
@@ -164,7 +159,7 @@ export default function SearchResults() {
               </svg>
             </div>
             <p className="text-xl text-gray-800 font-medium mb-2">No products found</p>
-            <p className="text-gray-600 mb-8">We couldn't find any products matching "{query}"</p>
+            <p className="text-gray-600 mb-8">We couldn&apos;t find any products matching &quot;{query}&quot;</p>
             <Link href="/search" className="inline-flex items-center justify-center px-5 py-3 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
               Return to search
             </Link>

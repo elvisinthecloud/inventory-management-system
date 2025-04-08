@@ -1,17 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Geist, Roboto_Mono } from "next/font/google";
+import { Roboto_Mono } from "next/font/google";
 import SearchBar from '@/app/components/SearchBar';
 import Link from 'next/link';
 import ProductCard from '@/app/components/ProductCard';
 import { useInvoice } from '@/app/context/InvoiceContext';
 import { useParams, useSearchParams } from 'next/navigation';
-
-const geistSans = Geist({
-  weight: '400',
-  subsets: ['latin'],
-});
 
 const robotoMono = Roboto_Mono({
   weight: '700',
@@ -67,7 +62,7 @@ export default function CategoryPage() {
     if (productsJson) {
       // If products exist in localStorage, use them
       const savedProducts = JSON.parse(productsJson);
-      productsToUse = savedProducts.map((product: any) => ({
+      productsToUse = savedProducts.map((product: Product) => ({
         ...product,
         stock: getProductStock(product.id)
       }));
@@ -163,7 +158,7 @@ export default function CategoryPage() {
               </svg>
             </div>
             <p className="text-xl text-gray-800 font-medium mb-2">No products found</p>
-            <p className="text-gray-600 mb-8">We couldn't find any products in the {categoryName} category</p>
+            <p className="text-gray-600 mb-8">We couldn&apos;t find any products in the {categoryName} category</p>
             <Link href="/search" className="inline-flex items-center justify-center px-5 py-3 border border-gray-300 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
               Return to categories
             </Link>

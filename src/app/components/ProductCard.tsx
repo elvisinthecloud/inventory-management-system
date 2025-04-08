@@ -12,7 +12,7 @@ interface Product {
 }
 
 export default function ProductCard({ product }: { product: Product }) {
-  const { addItem, invoice, updateQuantity, removeItem } = useInvoice();
+  const { addItem, invoice, updateQuantity } = useInvoice();
   const [addingToInvoice, setAddingToInvoice] = useState(false);
   
   // Find if this product is already in the invoice

@@ -197,7 +197,7 @@ export default function RestaurantList() {
         };
       })
       .filter(category => category.restaurants.length > 0);
-  }, [searchTerm, locationCategories]);
+  }, [searchTerm]);
   
   // Auto-expand categories when searching
   const shouldExpandCategory = (categoryName: string) => {

@@ -3,14 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useInvoice } from '../context/InvoiceContext';
-import { Roboto_Mono } from "next/font/google";
-import Link from 'next/link';
 import PageHeader from '@/app/components/PageHeader';
-
-const robotoMono = Roboto_Mono({
-  weight: '700',
-  subsets: ['latin'],
-});
 
 export default function CheckoutPage() {
   const { invoice, clearInvoice, totalItems, subtotal, creditsTotal, saveInvoiceToHistory, updateProductStock } = useInvoice();
@@ -38,7 +31,7 @@ export default function CheckoutPage() {
         
         // Check each invoice item against current stock
         let insufficientStock = false;
-        let outOfStockItems = [];
+        const outOfStockItems = [];
 
         for (const item of invoice.items) {
           const product = products.find((p: { id: number }) => p.id === item.id);
@@ -110,7 +103,7 @@ export default function CheckoutPage() {
           
           // Check each invoice item against current stock
           let insufficientStock = false;
-          let outOfStockItems = [];
+          const outOfStockItems = [];
 
           for (const item of invoice.items) {
             const product = products.find((p: { id: number }) => p.id === item.id);
@@ -146,7 +139,7 @@ export default function CheckoutPage() {
         // Get current products from localStorage
         const productsJson = localStorage.getItem('products');
         if (productsJson) {
-          let products = JSON.parse(productsJson);
+          const products = JSON.parse(productsJson);
           let stockUpdated = false;
           
           console.log("Processing invoice for stock updates...");
@@ -216,9 +209,12 @@ export default function CheckoutPage() {
     // Import jsPDF with proper type definition
     import('jspdf').then(({ default: jsPDF }) => {
       // Import autoTable dynamically
-      import('jspdf-autotable').then((jsPDFAutoTable) => {
+      import('jspdf-autotable').then((module) => {
         // Create document
         const doc = new jsPDF();
+        // Apply autoTable to document
+        module.default(doc, { /* table configuration */ });
+        
         const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
         const margin = 15; // Standard margin
@@ -289,9 +285,7 @@ export default function CheckoutPage() {
         doc.setLineWidth(0.5);
         doc.line(margin, 88, pageWidth - margin, 88);
         
-        // Calculate content height based on items - use smaller height per item
-        const itemCount = invoice.items.length;
-        const creditCount = invoice.credits?.length || 0;
+        // Define item height and spacing - needed for table layout
         const itemHeight = 9; // Reduced height per item row (was 12)
         const itemSpacing = 1; // Additional spacing between items
         
@@ -596,23 +590,23 @@ export default function CheckoutPage() {
         withAction={
           <div className="flex items-center space-x-2">
             {!isInvoiceGenerated && (
-              <Link 
+              <a 
                 href="/search" 
                 className="flex items-center text-gray-300 hover:text-white"
               >
                 <span className="material-icons mr-1">add</span>
                 <span className="hidden sm:inline">Add More Items</span>
                 <span className="sm:hidden">Add</span>
-              </Link>
+              </a>
             )}
-            <Link 
+            <a 
               href="/history" 
               className="flex items-center rounded-md bg-gray-700 px-3 py-2 text-gray-200 hover:bg-gray-600"
             >
               <span className="material-icons mr-1">history</span>
               <span className="hidden sm:inline">Invoice History</span>
               <span className="sm:hidden">History</span>
-            </Link>
+            </a>
           </div>
         }
       />

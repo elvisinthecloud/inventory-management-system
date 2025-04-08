@@ -14,7 +14,7 @@ interface PageHeaderProps {
 
 export default function PageHeader({ title, withAction, fullWidth = false }: PageHeaderProps) {
   return (
-    <div className={`mb-6`}>
+    <div className={`mb-6 ${fullWidth ? 'w-full' : ''}`}>
       <div className="px-4 sm:px-6 lg:px-8 py-4 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center mb-3 sm:mb-0">

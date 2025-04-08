@@ -178,7 +178,7 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
       try {
         const parsedHistory = JSON.parse(savedHistory);
         // Ensure each history item has a credits property
-        const updatedHistory = parsedHistory.map((item: any) => ({
+        const updatedHistory = parsedHistory.map((item: Partial<InvoiceHistoryItem>) => ({
           ...item,
           credits: item.credits || [] // Add empty credits array if missing
         }));
