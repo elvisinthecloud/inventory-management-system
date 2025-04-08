@@ -75,19 +75,29 @@ export default function StockManagementPage() {
           const savedProducts = JSON.parse(productsJson);
           console.log(`Found ${savedProducts.length} products in localStorage`);
           
-          // Update stock values from context
+          // Update stock values from context - ALWAYS prioritize Context values
           const productsWithUpdatedStock = savedProducts.map((product: Product) => {
-            const currentStock = getProductStock(product.id);
-            console.log(`Product ${product.name} (ID: ${product.id}) - Stock: ${currentStock !== 0 ? product.stock : 0}`);
-            return {
-              ...product,
-              // Only override with context stock if it's not 0, otherwise keep the localStorage value
-              stock: currentStock !== 0 ? currentStock : product.stock
-            };
+            const contextStock = getProductStock(product.id);
+            // Always use context stock value over localStorage (single source of truth)
+            if (contextStock !== undefined) {
+              if (contextStock !== product.stock) {
+                console.log(`Stock sync: Product ${product.name} (ID: ${product.id}) - Context: ${contextStock}, localStorage: ${product.stock}`);
+              }
+              return {
+                ...product,
+                stock: contextStock
+              };
+            }
+            // If for some reason context doesn't have this product yet, initialize it
+            updateProductStock(product.id, product.stock);
+            return product;
           });
           
+          // Save the context-aligned products back to localStorage to ensure consistency
+          localStorage.setItem('products', JSON.stringify(productsWithUpdatedStock));
+          
           setProducts(productsWithUpdatedStock);
-          console.log("Products loaded with current stock values");
+          console.log("Products loaded with current stock values from context");
         } catch (error) {
           console.error("Error parsing products from localStorage:", error);
           // Fallback to default products if there's an error
@@ -223,9 +233,8 @@ export default function StockManagementPage() {
         
         // Initialize context stock values for each product
         baseProducts.forEach(product => {
-          if (getProductStock(product.id) === 0) {
-            updateProductStock(product.id, product.stock);
-          }
+          // Always set the context with the default value
+          updateProductStock(product.id, product.stock);
         });
         
         // Save products with stock to localStorage
@@ -282,7 +291,7 @@ export default function StockManagementPage() {
       
     console.log(`Adjusting stock for ${product.name}: ${product.stock} → ${newStock} (${isAdd ? 'adding' : 'subtracting'} ${amountToAdjust})`);
     
-    // Update stock in context
+    // Update stock in context - this is our SINGLE SOURCE OF TRUTH
     updateProductStock(productId, newStock);
     
     // Update local state to reflect changes
@@ -299,7 +308,7 @@ export default function StockManagementPage() {
     // Update state
     setProducts(updatedProducts);
     
-    // Save changes to localStorage
+    // Save changes to localStorage - LOCAL STORAGE IS JUST FOR PERSISTENCE
     localStorage.setItem('products', JSON.stringify(updatedProducts));
     console.log(`Saved updated stock to localStorage for product ${productId}`);
     
@@ -412,22 +421,29 @@ export default function StockManagementPage() {
               setLoading(true);
               console.log("Manual refresh of stock data requested");
               
-              // Force reload products data from localStorage
+              // Force reload products data from localStorage to get product info
               const productsJson = localStorage.getItem('products');
               if (productsJson) {
                 try {
                   const savedProducts = JSON.parse(productsJson);
                   console.log(`Loaded ${savedProducts.length} products from localStorage`);
                   
-                  // Use the stock values directly from localStorage
-                  setProducts(savedProducts);
-                  
-                  // Also ensure context has the latest values
-                  savedProducts.forEach((product: Product) => {
-                    updateProductStock(product.id, product.stock);
+                  // But use the stock values from context (single source of truth)
+                  const syncedProducts = savedProducts.map((product: Product) => {
+                    const contextStock = getProductStock(product.id);
+                    return {
+                      ...product,
+                      stock: contextStock !== undefined ? contextStock : product.stock
+                    };
                   });
                   
-                  console.log("✅ Stock data refreshed successfully from localStorage");
+                  // Update the products state with context-aligned values
+                  setProducts(syncedProducts);
+                  
+                  // Save the synced data back to localStorage for consistency
+                  localStorage.setItem('products', JSON.stringify(syncedProducts));
+                  
+                  console.log("✅ Stock data refreshed successfully from context");
                 } catch (error) {
                   console.error("Error refreshing stock data:", error);
                 } finally {
