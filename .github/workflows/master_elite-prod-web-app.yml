@@ -32,6 +32,7 @@ jobs:
         push: true
         tags: eliteprodacr.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_5720faea442a42259281e8ed2446df91 }}/nextjs-app:${{ github.sha }}
         file: ./Dockerfile
+        no-cache: true
 
   deploy:
     runs-on: ubuntu-latest
