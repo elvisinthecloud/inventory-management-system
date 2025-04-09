@@ -29,6 +29,7 @@ jobs:
     - name: Build and push container image to registry
       uses: docker/build-push-action@v3
       with:
+        context: .
         push: true
         tags: eliteprodacr.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_5720faea442a42259281e8ed2446df91 }}/nextjs-app:${{ github.sha }}
         file: ./Dockerfile
