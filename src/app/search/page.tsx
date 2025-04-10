@@ -163,16 +163,10 @@ export default function SearchPage() {
       {/* Main content area */}
       <main className="container mx-auto max-w-7xl px-4 md:px-6 lg:px-8 py-8 md:py-12 flex-grow">
         
-        {/* Section 1: Search Bar */}
-        <section className="mb-12 md:mb-16 bg-white p-6 md:p-8 rounded-lg shadow-sm border border-gray-200">
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-3">
-            Find Products Instantly
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Use the search bar below or browse categories to find what you need.
-          </p>
-          <SearchBar placeholder="Search by product name or keyword..." />
-        </section>
+        {/* Search Bar - simplified */}
+        <div className="mb-12 md:mb-16"> {/* Added a div for margin consistency */}
+          <SearchBar placeholder="search" />
+        </div>
 
         {/* Section 2: Categories */}
         <section>
