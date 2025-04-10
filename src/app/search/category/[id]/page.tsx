@@ -5,7 +5,8 @@ import { Roboto_Mono } from "next/font/google";
 import SearchBar from '@/app/components/SearchBar';
 import Link from 'next/link';
 import ProductCard from '@/app/components/ProductCard';
-import { useInvoice } from '@/app/context/InvoiceContext';
+import { useInvoice, Product } from '@/app/context/InvoiceContext';
+import { baseProducts as sharedBaseProducts } from '@/data/defaultProducts';
 import { useParams, useSearchParams } from 'next/navigation';
 
 const robotoMono = Roboto_Mono({
@@ -13,85 +14,46 @@ const robotoMono = Roboto_Mono({
   subsets: ['latin'],
 });
 
-// Define the product interface
-interface Product {
-  id: number;
-  name: string;
-  category: string;
-  categoryId: number;
-  price: number;
-  stock: number;
-}
-
-// Base product data without stock
-const baseProducts = [
-  { id: 1, name: 'Cinnamon', category: 'Spices', categoryId: 1, price: 3.99 },
-  { id: 2, name: 'Cardamom', category: 'Spices', categoryId: 1, price: 5.99 },
-  { id: 3, name: 'Turmeric', category: 'Spices', categoryId: 1, price: 2.99 },
-  { id: 4, name: 'Basil', category: 'Herbs', categoryId: 2, price: 2.49 },
-  { id: 5, name: 'Mint', category: 'Herbs', categoryId: 2, price: 1.99 },
-  { id: 6, name: 'Rosemary', category: 'Herbs', categoryId: 2, price: 2.29 },
-  { id: 7, name: 'Vanilla Ice Cream', category: 'Ice Cream', categoryId: 3, price: 4.99 },
-  { id: 8, name: 'Chocolate Ice Cream', category: 'Ice Cream', categoryId: 3, price: 4.99 },
-  { id: 9, name: 'Strawberry Ice Cream', category: 'Ice Cream', categoryId: 3, price: 5.49 },
-  { id: 10, name: 'Tomatoes', category: 'Vegetables', categoryId: 4, price: 2.99 },
-  { id: 11, name: 'Carrots', category: 'Vegetables', categoryId: 4, price: 1.49 },
-  { id: 12, name: 'Broccoli', category: 'Vegetables', categoryId: 4, price: 1.99 },
-  { id: 13, name: 'Apples', category: 'Fruits', categoryId: 5, price: 3.49 },
-  { id: 14, name: 'Bananas', category: 'Fruits', categoryId: 5, price: 1.29 },
-  { id: 15, name: 'Oranges', category: 'Fruits', categoryId: 5, price: 2.49 },
-  { id: 16, name: 'Milk', category: 'Dairy', categoryId: 6, price: 2.49 },
-  { id: 17, name: 'Cheese', category: 'Dairy', categoryId: 6, price: 3.99 },
-  { id: 18, name: 'Yogurt', category: 'Dairy', categoryId: 6, price: 1.99 },
-];
-
 export default function CategoryPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const categoryId = parseInt(params.id as string);
   const categoryName = searchParams?.get('name') || 'Category';
   const { getProductStock } = useInvoice();
   const [products, setProducts] = useState<Product[]>([]);
   
   // Load product data with current stock levels
   useEffect(() => {
-    // Add stock from context to each product
+    let productsSource: Product[];
     const productsJson = localStorage.getItem('products');
-    let productsToUse;
-    
+
     if (productsJson) {
-      // If products exist in localStorage, use them
-      const savedProducts = JSON.parse(productsJson);
-      productsToUse = savedProducts.map((product: Product) => ({
-        ...product,
-        stock: getProductStock(product.id)
-      }));
+      console.log('CategoryPage: Loading products from localStorage');
+      try {
+        productsSource = JSON.parse(productsJson);
+      } catch (error) {
+        console.error("Error parsing products from localStorage:", error);
+        console.log('CategoryPage: Falling back to shared baseProducts due to parse error.');
+        productsSource = sharedBaseProducts; // Fallback on error
+      }
     } else {
-      // Otherwise, use the default product data
-      productsToUse = baseProducts.map(product => ({
-        ...product,
-        stock: getProductStock(product.id)
-      }));
+      console.log('CategoryPage: No products in localStorage, using shared baseProducts.');
+      productsSource = sharedBaseProducts; // Use shared defaults if localStorage is empty
     }
+
+    // Add current stock from context to each product
+    const productsWithStock = productsSource.map(product => ({
+      ...product,
+      stock: getProductStock(product.id) // getProductStock handles undefined IDs returning 0
+    }));
     
-    setProducts(productsToUse);
-  }, [getProductStock]);
+    setProducts(productsWithStock);
+    console.log(`CategoryPage: Set ${productsWithStock.length} products with stock for category ${categoryName}.`);
+
+  }, [getProductStock, categoryName]); // Add categoryName dependency if filtering depends on it directly here
   
-  // Filter products by category ID
+  // Filter products by category name (more reliable than potentially inconsistent ID)
   const categoryProducts = products.filter(product => {
-    console.log('Filtering product:', product.name, 'Category ID:', product.categoryId, 'Looking for:', categoryId);
-    
-    // First try to match by categoryId (most reliable)
-    if (product.categoryId === categoryId) {
-      return true;
-    }
-    
-    // Only fall back to category name if we absolutely have to
-    if (product.categoryId === undefined && product.category === categoryName) {
-      return true;
-    }
-    
-    return false;
+    return product.category === categoryName;
   });
   
   // Get badge color for category

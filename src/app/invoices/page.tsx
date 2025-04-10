@@ -17,7 +17,8 @@ export default function InvoicesPage() {
     creditsTotal,
     addCredit,
     removeCredit,
-    updateCreditQuantity 
+    updateCreditQuantity,
+    getProductStock
   } = useInvoice();
   const router = useRouter();
   
@@ -27,67 +28,61 @@ export default function InvoicesPage() {
   const [creditPrice, setCreditPrice] = useState('');
   const [creditQuantity, setCreditQuantity] = useState('1');
   
-  // Check stock availability when page loads
+  // Check stock availability when page loads or items change
   useEffect(() => {
     // Only run this if we have items in the invoice
     if (invoice.items.length > 0) {
-      console.log("Verifying stock for all invoice items...");
+      console.log("Verifying stock for all invoice items using context...");
       
-      // Get current products from localStorage
-      const productsJson = localStorage.getItem('products');
-      if (productsJson) {
-        try {
-          const products = JSON.parse(productsJson);
-          const itemsWithLowStock: Array<{ name: string; original: number; adjusted: number }> = [];
-          let adjustments = false;
-          
-          // Check each invoice item against current stock
-          invoice.items.forEach(item => {
-            const product = products.find((p: { id: number; stock: number }) => p.id === item.id);
-            if (product) {
-              // If item quantity exceeds available stock
-              if (item.quantity > product.stock) {
-                if (product.stock > 0) {
-                  // Adjust quantity to match available stock
-                  console.log(`Adjusting ${item.name} quantity from ${item.quantity} to ${product.stock}`);
-                  updateQuantity(item.id, product.stock);
-                  itemsWithLowStock.push({
-                    name: item.name, 
-                    original: item.quantity, 
-                    adjusted: product.stock
-                  });
-                  adjustments = true;
-                } else {
-                  // If completely out of stock
-                  console.log(`Removing ${item.name} from invoice - out of stock`);
-                  removeItem(item.id);
-                  itemsWithLowStock.push({
-                    name: item.name, 
-                    original: item.quantity, 
-                    adjusted: 0
-                  });
-                  adjustments = true;
-                }
-              }
-            }
-          });
-          
-          // Show notification if adjustments were made
-          if (adjustments) {
-            const message = itemsWithLowStock.map(item => 
-              item.adjusted === 0 
-                ? `${item.name}: Removed (out of stock)` 
-                : `${item.name}: Reduced from ${item.original} to ${item.adjusted}`
-            ).join('\n');
-            
-            alert(`Some items in your invoice have been adjusted due to stock changes:\n\n${message}`);
+      const itemsWithLowStock: Array<{ name: string; original: number; adjusted: number }> = [];
+      let adjustments = false;
+      
+      // Check each invoice item against current stock from CONTEXT
+      invoice.items.forEach(item => {
+        const currentStock = getProductStock(item.id); // Use context function
+        
+        // If item quantity exceeds available stock
+        if (item.quantity > currentStock) {
+          if (currentStock > 0) {
+            // Adjust quantity to match available stock
+            console.log(`Adjusting ${item.name} quantity from ${item.quantity} to ${currentStock}`);
+            updateQuantity(item.id, currentStock);
+            itemsWithLowStock.push({
+              name: item.name, 
+              original: item.quantity, 
+              adjusted: currentStock
+            });
+            adjustments = true;
+          } else {
+            // If completely out of stock
+            console.log(`Removing ${item.name} from invoice - out of stock`);
+            removeItem(item.id);
+            itemsWithLowStock.push({
+              name: item.name, 
+              original: item.quantity, 
+              adjusted: 0
+            });
+            adjustments = true;
           }
-        } catch (error) {
-          console.error("Error checking stock availability:", error);
         }
+      });
+      
+      // Show notification if adjustments were made
+      if (adjustments) {
+        const message = itemsWithLowStock.map(item => 
+          item.adjusted === 0 
+            ? `${item.name}: Removed (out of stock)` 
+            : `${item.name}: Reduced from ${item.original} to ${item.adjusted}`
+        ).join('\n');
+        
+        // Use setTimeout to ensure alert happens after potential state updates settle
+        setTimeout(() => {
+            alert(`Some items in your invoice have been adjusted due to stock changes:\n\n${message}`);
+        }, 0);
       }
     }
-  }, [invoice.items, updateQuantity, removeItem]);
+  // Ensure getProductStock is included if it could theoretically change, though unlikely
+  }, [invoice.items, updateQuantity, removeItem, getProductStock]);
   
   const taxRate = 0.06;
   const tax = subtotal * taxRate;

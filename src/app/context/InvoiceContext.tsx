@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { baseProducts } from '@/data/defaultProducts'; // Import shared baseProducts
 
 // Define types for our invoice items
 export interface InvoiceItem {
@@ -49,28 +50,6 @@ function ClientOnly({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 }
-
-// Initial default stock data
-const defaultStockData = {
-  1: 15, // Cinnamon
-  2: 8,  // Cardamom
-  3: 20, // Turmeric
-  4: 12, // Basil
-  5: 18, // Mint
-  6: 5,  // Rosemary
-  7: 10, // Vanilla Ice Cream
-  8: 14, // Chocolate Ice Cream
-  9: 7,  // Strawberry Ice Cream
-  10: 25, // Tomatoes
-  11: 30, // Carrots
-  12: 15, // Broccoli
-  13: 40, // Apples
-  14: 35, // Bananas
-  15: 22, // Oranges
-  16: 42, // Milk
-  17: 6,  // Cheese
-  18: 18, // Yogurt
-};
 
 // Define the invoice state interface
 interface InvoiceState {
@@ -131,11 +110,13 @@ interface InvoiceProviderProps {
 
 // Invoice provider component
 export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
-  // Initialize with empty values to prevent hydration mismatch
   const [invoice, setInvoice] = useState<InvoiceState>({ items: [], credits: [], restaurant: null });
-  const [productStock, setProductStock] = useState<{[key: number]: number}>(defaultStockData);
+  // Initialize productStock state as an empty object initially
+  const [productStock, setProductStock] = useState<{[key: number]: number}>({});
   const [invoiceHistory, setInvoiceHistory] = useState<InvoiceHistoryItem[]>([]);
   const [isClient, setIsClient] = useState(false);
+  // Add a ref to track if initial stock has been set
+  const initialStockSet = React.useRef(false);
   
   // Defensive measure: ensure credits is always defined, even during race conditions
   if (!invoice.credits) {
@@ -163,15 +144,6 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
       }
     }
     
-    // Get saved stock data from localStorage
-    const savedStock = localStorage.getItem('productStock');
-    if (savedStock) {
-      setProductStock(JSON.parse(savedStock));
-    } else {
-      // If no saved stock, save the default stock data
-      localStorage.setItem('productStock', JSON.stringify(defaultStockData));
-    }
-
     // Get saved invoice history from localStorage
     const savedHistory = localStorage.getItem('invoiceHistory');
     if (savedHistory) {
@@ -188,7 +160,40 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
         setInvoiceHistory([]);
       }
     }
-  }, []);
+
+    // Load or Initialize Product Stock
+    if (!initialStockSet.current) { // Only run initialization once
+      const savedStock = localStorage.getItem('productStock');
+      if (savedStock) {
+        console.log('InvoiceContext: Loading productStock from localStorage');
+        try {
+          setProductStock(JSON.parse(savedStock));
+        } catch (error) {
+          console.error("Error parsing productStock from localStorage:", error);
+          // Fallback if parsing fails - initialize from baseProducts
+          console.log('InvoiceContext: Initializing productStock from baseProducts due to parse error.');
+          const initialStock = baseProducts.reduce((acc, product) => {
+            acc[product.id] = product.stock;
+            return acc;
+          }, {} as {[key: number]: number});
+          setProductStock(initialStock);
+          localStorage.setItem('productStock', JSON.stringify(initialStock)); // Save the initialized stock
+        }
+      } else {
+        // If no saved stock, initialize from baseProducts
+        console.log('InvoiceContext: Initializing productStock from baseProducts.');
+        const initialStock = baseProducts.reduce((acc, product) => {
+          acc[product.id] = product.stock;
+          return acc;
+        }, {} as {[key: number]: number});
+        setProductStock(initialStock);
+        // Save the initialized stock to localStorage
+        localStorage.setItem('productStock', JSON.stringify(initialStock));
+      }
+      initialStockSet.current = true; // Mark as initialized
+    }
+
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   // Save invoice to localStorage whenever it changes (but only on client)
   useEffect(() => {
@@ -238,46 +243,24 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
 
   // Add an item to the invoice
   const addItem = (item: Omit<InvoiceItem, 'quantity'>) => {
-    // Check stock both from context and localStorage
-    const contextStock = getProductStock(item.id);
-    
-    // Get latest stock from localStorage (the source of truth)
-    let latestStock = contextStock;
-    if (typeof window !== 'undefined') {
-      const productsJson = localStorage.getItem('products');
-      if (productsJson) {
-        try {
-          const products = JSON.parse(productsJson);
-          const product = products.find((p: Product) => p.id === item.id);
-          if (product) {
-            latestStock = product.stock;
-            // Update context stock if different
-            if (latestStock !== contextStock) {
-              updateProductStock(item.id, latestStock);
-            }
-          }
-        } catch (error) {
-          console.error("Error checking latest stock:", error);
-        }
-      }
-    }
+    // Check stock using the context's getProductStock (single source of truth)
+    const currentStock = getProductStock(item.id);
     
     // If item is completely out of stock
-    if (latestStock <= 0) {
+    if (currentStock <= 0) {
       alert(`Cannot add ${item.name} - Out of stock!`);
       return;
     }
 
     setInvoice(prevInvoice => {
-      // Check if item already exists in invoice
       const existingItemIndex = prevInvoice.items.findIndex(invoiceItem => invoiceItem.id === item.id);
       
       if (existingItemIndex > -1) {
-        // If exists, check if we can increment quantity
         const currentQuantity = prevInvoice.items[existingItemIndex].quantity;
         
-        if (currentQuantity >= latestStock) {
-          alert(`Cannot add more ${item.name} - Stock limit reached!`);
+        // Check against current stock from context
+        if (currentQuantity >= currentStock) {
+          alert(`Cannot add more ${item.name} - Stock limit reached (${currentStock})!`);
           return prevInvoice;
         }
         
@@ -309,58 +292,29 @@ export const InvoiceProvider = ({ children }: InvoiceProviderProps) => {
 
   // Update the quantity of an item
   const updateQuantity = (itemId: number, quantity: number) => {
-    // Get current item from invoice
     const currentItem = invoice.items.find(item => item.id === itemId);
     if (!currentItem) return;
     
-    // Get latest stock from localStorage (the source of truth)
-    let latestStock = getProductStock(itemId);
-    if (typeof window !== 'undefined') {
-      const productsJson = localStorage.getItem('products');
-      if (productsJson) {
-        try {
-          const products = JSON.parse(productsJson);
-          const product = products.find((p: Product) => p.id === itemId);
-          if (product) {
-            latestStock = product.stock;
-            // Update context stock if different
-            if (latestStock !== getProductStock(itemId)) {
-              updateProductStock(itemId, latestStock);
-            }
-          }
-        } catch (error) {
-          console.error("Error checking latest stock:", error);
-        }
-      }
-    }
-    
+    // Get current stock using the context's getProductStock (single source of truth)
+    const currentStock = getProductStock(itemId);
+
     // If item is completely out of stock (stock is 0)
-    if (latestStock === 0) {
-      // Show warning that item is out of stock
+    if (currentStock === 0) {
       alert(`${currentItem.name} is now out of stock and will be removed from your invoice.`);
-      // Remove the item from invoice
       removeItem(itemId);
       return;
     }
     
     // Handle normal quantity reduction
     if (quantity < 1) {
-      // If quantity is less than 1, remove the item
       removeItem(itemId);
       return;
     }
     
     // Check if requested quantity exceeds available stock
-    if (quantity > currentItem.quantity && quantity > latestStock) {
-      alert(`Cannot set quantity to ${quantity} - Only ${latestStock} in stock!`);
-      return;
-    }
-    
-    // If decreasing quantity but still need to cap at available stock
-    if (quantity <= currentItem.quantity && quantity > latestStock) {
-      // If we're reducing but still higher than available stock, cap at available stock
-      alert(`Quantity adjusted to ${latestStock} - limited by available stock.`);
-      quantity = latestStock;
+    if (quantity > currentStock) {
+      alert(`Cannot set quantity to ${quantity} - Only ${currentStock} in stock! Setting to max available.`);
+      quantity = currentStock; // Cap at available stock
     }
     
     // Update the quantity

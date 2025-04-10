@@ -4,15 +4,17 @@ import React, { useState, useEffect } from 'react';
 import { useInvoice } from '../context/InvoiceContext';
 import AddProductModal from '../components/AddProductModal';
 import PageHeader from '@/app/components/PageHeader';
+import { Product } from '../context/InvoiceContext'; // Import Product type
+import { baseProducts } from '../../data/defaultProducts'; // Import baseProducts
 
-// Define product type
-interface Product {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
-  stock: number;
-}
+// Define product type - REMOVED
+// interface Product {
+//   id: number;
+//   name: string;
+//   category: string;
+//   price: number;
+//   stock: number;
+// }
 
 export default function StockManagementPage() {
   // Get product stock from InvoiceContext
@@ -54,19 +56,17 @@ export default function StockManagementPage() {
       setLoading(true);
       console.log("Loading products data from localStorage");
       
-      // Try to get products from localStorage
       const productsJson = localStorage.getItem('products');
       
       if (productsJson) {
+        // If products exist in localStorage, use them
         try {
-          // If products exist in localStorage, use them
           const savedProducts = JSON.parse(productsJson);
           console.log(`Found ${savedProducts.length} products in localStorage`);
           
-          // Update stock values from context - ALWAYS prioritize Context values
+          // Update stock values from context - Context should now be initialized correctly
           const productsWithUpdatedStock = savedProducts.map((product: Product) => {
             const contextStock = getProductStock(product.id);
-            // Always use context stock value over localStorage (single source of truth)
             if (contextStock !== undefined) {
               if (contextStock !== product.stock) {
                 console.log(`Stock sync: Product ${product.name} (ID: ${product.id}) - Context: ${contextStock}, localStorage: ${product.stock}`);
@@ -76,8 +76,9 @@ export default function StockManagementPage() {
                 stock: contextStock
               };
             }
-            // If for some reason context doesn't have this product yet, initialize it
-            updateProductStock(product.id, product.stock);
+            // This fallback might not be strictly needed if context is guaranteed to be initialized first
+            // but kept for safety
+            console.warn(`Context stock not found for product ID ${product.id}, using localStorage value.`);
             return product;
           });
           
@@ -88,147 +89,29 @@ export default function StockManagementPage() {
           console.log("Products loaded with current stock values from context");
         } catch (error) {
           console.error("Error parsing products from localStorage:", error);
-          // Fallback to default products if there's an error
           setProducts([]);
         }
       } else {
         // Otherwise, use our default products
-        console.log("No products found in localStorage, using default products");
-        const baseProducts = [
-          // { id: 1, name: 'Cinnamon', category: 'Spices', price: 3.99, stock: 15 }, // DELETED
-          // { id: 2, name: 'Cardamom', category: 'Spices', price: 5.99, stock: 8 }, // DELETED
-          // { id: 3, name: 'Turmeric', category: 'Spices', price: 2.99, stock: 20 }, // DELETED
-          { id: 4, name: 'Basil', category: 'Hierbas', price: 2.49, stock: 12 },
-          { id: 5, name: 'Mint', category: 'Hierbas', price: 1.99, stock: 18 },
-          { id: 6, name: 'Rosemary', category: 'Hierbas', price: 2.29, stock: 5 },
-          // { id: 7, name: 'Vanilla Ice Cream', category: 'Ice Cream', price: 4.99, stock: 10 }, // DELETED
-          // { id: 8, name: 'Chocolate Ice Cream', category: 'Ice Cream', price: 4.99, stock: 14 }, // DELETED
-          // { id: 9, name: 'Strawberry Ice Cream', category: 'Ice Cream', price: 5.49, stock: 7 }, // DELETED
-          // { id: 10, name: 'Tomatoes', category: 'Vegetables', price: 2.99, stock: 25 }, // DELETED
-          // { id: 11, name: 'Carrots', category: 'Vegetables', price: 1.49, stock: 30 }, // DELETED
-          // { id: 12, name: 'Broccoli', category: 'Vegetables', price: 1.99, stock: 15 }, // DELETED
-          // { id: 13, name: 'Apples', category: 'Fruits', price: 3.49, stock: 40 }, // DELETED
-          // { id: 14, name: 'Bananas', category: 'Fruits', price: 1.29, stock: 35 }, // DELETED
-          // { id: 15, name: 'Oranges', category: 'Fruits', price: 2.49, stock: 22 }, // DELETED
-          // { id: 16, name: 'Milk', category: 'Dairy', price: 2.49, stock: 42 }, // DELETED
-          // { id: 17, name: 'Cheese', category: 'Dairy', price: 3.99, stock: 6 }, // DELETED
-          // { id: 18, name: 'Yogurt', category: 'Dairy', price: 1.99, stock: 18 }, // DELETED
-          { id: 19, name: 'Guajillo 12oz', category: 'Chiles', price: 70.00, stock: 10 },
-          { id: 20, name: 'Guajillo LB', category: 'Chiles', price: 75.00, stock: 10 },
-          { id: 21, name: 'Guajillo 3oz', category: 'Chiles', price: 25.50, stock: 10 },
-          { id: 22, name: 'Guajillo 6 oz', category: 'Chiles', price: 42.00, stock: 10 },
-          { id: 23, name: 'Guajillo 8 oz', category: 'Chiles', price: 51.00, stock: 10 },
-          { id: 24, name: 'Ancho 6/8 oz', category: 'Chiles', price: 51.00, stock: 10 },
-          { id: 25, name: 'Ancho 3oz', category: 'Chiles', price: 25.50, stock: 10 },
-          { id: 26, name: 'Pasilla 6/8 oz', category: 'Chiles', price: 51.00, stock: 10 },
-          { id: 27, name: 'Pasilla 3oz', category: 'Chiles', price: 25.50, stock: 10 },
-          { id: 28, name: 'Arbol 6/8 oz', category: 'Chiles', price: 42.00, stock: 10 },
-          { id: 29, name: 'Arbol 3oz', category: 'Chiles', price: 25.50, stock: 10 },
-          { id: 30, name: 'Carne de Soya', category: 'Chiles', price: 42.00, stock: 10 },
-          { id: 31, name: 'Jamaica 6/8 oz', category: 'Chiles', price: 45.00, stock: 10 },
-          { id: 32, name: 'Jamaica LB', category: 'Chiles', price: 75.00, stock: 10 },
-          { id: 33, name: 'Jamaica 12oz', category: 'Chiles', price: 75.00, stock: 10 },
-          { id: 34, name: 'California 3oz', category: 'Chiles', price: 25.50, stock: 10 },
-          { id: 35, name: 'Puya 3oz', category: 'Chiles', price: 25.50, stock: 10 },
-          { id: 36, name: 'Chipotle 3oz', category: 'Chiles', price: 25.50, stock: 10 },
-          { id: 37, name: 'Mulato 3oz', category: 'Chiles', price: 25.50, stock: 10 },
-          { id: 38, name: 'Morita 3oz', category: 'Chiles', price: 25.50, stock: 10 },
-          { id: 39, name: 'Cascabel 3oz', category: 'Chiles', price: 25.50, stock: 10 },
-          { id: 40, name: 'Negro 3oz', category: 'Chiles', price: 25.50, stock: 10 },
-          { id: 41, name: 'Nuevo Mexico 3oz', category: 'Chiles', price: 25.50, stock: 10 },
-          { id: 42, name: 'Hoja de Laurel', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 43, name: 'Oregano Entero', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 44, name: 'Hoja de Aguacate', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 45, name: 'Manzanilla en Rama', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 46, name: 'Flor de Manzanilla', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 47, name: 'Guyaba', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 48, name: 'Guanábana', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 49, name: 'Hoja Santa', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 50, name: 'Hierba Para la Tos', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 51, name: 'Epazote en Rama', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 52, name: 'Arnica en Rama', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 53, name: 'Diente de Leon', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 54, name: 'Moringa', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 55, name: 'Cola de Caballo', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 56, name: 'Cola de Caballo con Barba', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 57, name: 'Eucalipto', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 58, name: 'Eucalipto y Gordolobo', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 59, name: 'Hojas de Limon', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 60, name: 'Ruda', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 61, name: 'Tamarindo (Hierba)', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 62, name: 'Compuesto de Adelgazar', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 63, name: 'Compuesto de Riñon', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 64, name: 'Compuesto de Variz', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 65, name: 'Compuesto de Gastritis', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 66, name: 'Compuesto de Artritis', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 67, name: 'Compuesto de Diabetes', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 68, name: 'Compuesto de Ulceras', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 69, name: 'Compuesto de Reumas', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 70, name: 'Relajo', category: 'Hierbas', price: 30.00, stock: 10 },
-          { id: 71, name: 'Curcuma', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 72, name: 'Canela Entera', category: 'Hierbas', price: 42.00, stock: 10 },
-          { id: 73, name: 'Canela Dura', category: 'Hierbas', price: 42.00, stock: 10 },
-          { id: 74, name: 'Ajonjoli Natural', category: 'Hierbas', price: 30.00, stock: 10 },
-          { id: 75, name: 'Pepita Natural', category: 'Hierbas', price: 30.00, stock: 10 },
-          { id: 76, name: 'Chia', category: 'Hierbas', price: 51.00, stock: 10 },
-          { id: 77, name: 'Semilla de Calabaza', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 78, name: 'Linaza Entera', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 79, name: 'Linaza Molida', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 80, name: 'Ciruela Pasas', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 81, name: 'Pasas', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 82, name: 'Tamarindo Entero', category: 'Hierbas', price: 25.50, stock: 10 },
-          { id: 83, name: 'Camaron Entero', category: 'Hierbas', price: 45.00, stock: 10 },
-          { id: 84, name: 'Camaron Molido', category: 'Hierbas', price: 42.00, stock: 10 },
-          { id: 85, name: 'Romero', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 86, name: 'Tomillo', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 87, name: 'Comino Entero', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 88, name: 'Comino Mix', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 89, name: 'Comino Molido', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 90, name: 'Pimienta Negra Molida', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 91, name: 'Pimienta Dulce Entera', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 92, name: 'Pimienta Negra Molida', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 93, name: 'Achiote Molido', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 94, name: 'Achiote Entero', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 95, name: 'Achiote en Pasta', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 96, name: 'Cuachalalate', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 97, name: 'Chia Small', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 98, name: 'Linaza Small', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 99, name: 'Linaza Molida Small', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 100, name: 'Canela Entera Small', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 101, name: 'Flor de Manzanilla Small', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 102, name: 'Te de Manzanilla', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 103, name: 'Hojas de Zen', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 104, name: 'Chile Pequin Entero', category: 'Especias', price: 25.50, stock: 10 },
-          { id: 105, name: 'Menudo Mix Chile', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 106, name: 'Clavo Entero', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 107, name: 'Anis Estrella', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 108, name: 'Anis en Grano', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 109, name: 'Canela Molida', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 110, name: 'Quina', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 111, name: 'Piedra Alumbre', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 112, name: 'Eucalipto Small', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 113, name: 'Uña de Gato', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 114, name: 'Te de Tilo', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 115, name: 'Carbonato', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 116, name: 'Cal Mexicana', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 117, name: 'Palo Azul', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 118, name: 'Cilantro Bolita', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 119, name: 'Alhucema', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 120, name: 'Jengibre', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 121, name: 'Albahaca', category: 'Especias', price: 17.00, stock: 10 },
-          { id: 122, name: 'Ajenjo', category: 'Especias', price: 17.00, stock: 10 }
-        ];
+        // Context is responsible for initializing stock now
+        console.log("No products found in localStorage, using default products from shared file for display.");
         
-        // Initialize context stock values for each product
-        baseProducts.forEach(product => {
-          // Always set the context with the default value
-          updateProductStock(product.id, product.stock);
-        });
+        // We still need to set the *local state* for the page display
+        // Get stock from the *already initialized* context
+        const baseProductsWithContextStock = baseProducts.map(product => ({
+          ...product,
+          stock: getProductStock(product.id) // Get initial stock from context
+        })); 
         
-        // Save products with stock to localStorage
-        localStorage.setItem('products', JSON.stringify(baseProducts));
+        // Initialize context stock values for each product - REMOVED
+        // baseProducts.forEach(product => {
+        //   updateProductStock(product.id, product.stock);
+        // });
         
-        setProducts(baseProducts);
+        // Save base products (with context stock) to localStorage for consistency
+        localStorage.setItem('products', JSON.stringify(baseProductsWithContextStock));
+        
+        setProducts(baseProductsWithContextStock);
       }
       
       setLoading(false);
@@ -250,7 +133,7 @@ export default function StockManagementPage() {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [getProductStock, updateProductStock]);
+  }, [getProductStock]); // Removed updateProductStock from dependencies
   
   // Handle adjustment input changes
   const handleAdjustmentChange = (productId: number, value: string) => {

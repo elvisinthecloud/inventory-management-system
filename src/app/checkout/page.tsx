@@ -6,7 +6,7 @@ import { useInvoice } from '../context/InvoiceContext';
 import PageHeader from '@/app/components/PageHeader';
 
 export default function CheckoutPage() {
-  const { invoice, clearInvoice, totalItems, subtotal, creditsTotal, saveInvoiceToHistory, updateProductStock } = useInvoice();
+  const { invoice, clearInvoice, totalItems, subtotal, creditsTotal, saveInvoiceToHistory, updateProductStock, getProductStock } = useInvoice();
   const router = useRouter();
   const [orderId, setOrderId] = useState('');
   const [orderDate, setOrderDate] = useState('');
@@ -94,96 +94,56 @@ export default function CheckoutPage() {
     
     // Wait for animation to complete before actual generation
     setTimeout(() => {
-      // Check if all items are still in stock
+      // --- Stock Verification (Keep as is) ---
+      let canProceed = true;
       if (invoice.restaurant && invoice.items.length > 0) {
-        // Get current products from localStorage
-        const productsJson = localStorage.getItem('products');
-        if (productsJson) {
-          const products = JSON.parse(productsJson);
-          
-          // Check each invoice item against current stock
-          let insufficientStock = false;
-          const outOfStockItems = [];
+        console.log("Verifying stock before final confirmation...");
+        const itemsToVerify = invoice.items;
+        const outOfStockItems = [];
 
-          for (const item of invoice.items) {
-            const product = products.find((p: { id: number }) => p.id === item.id);
-            if (product) {
-              // If current stock is less than quantity in invoice
-              if (product.stock < item.quantity) {
-                insufficientStock = true;
-                outOfStockItems.push({
-                  name: item.name,
-                  requested: item.quantity,
-                  available: product.stock
-                });
-              }
-            }
-          }
-          
-          // If any items are out of stock, show error and don't proceed
-          if (insufficientStock) {
-            const message = outOfStockItems.map(item => 
-              `${item.name}: Requested ${item.requested}, only ${item.available} available`
-            ).join('\n');
-            
-            setIsConfirming(false);
-            setShowConfirmationEffect(false);
-            alert(`Cannot generate invoice due to insufficient stock:\n${message}`);
-            return;
+        for (const item of itemsToVerify) {
+          const currentStock = getProductStock(item.id); // Use context function
+          if (currentStock < item.quantity) {
+            canProceed = false;
+            outOfStockItems.push({
+              name: item.name,
+              requested: item.quantity,
+              available: currentStock
+            });
           }
         }
-      }
-      
-      // First, update stock for all items in the invoice
-      if (invoice.restaurant && invoice.items.length > 0) {
-        // Get current products from localStorage
-        const productsJson = localStorage.getItem('products');
-        if (productsJson) {
-          const products = JSON.parse(productsJson);
-          let stockUpdated = false;
+        
+        if (!canProceed) {
+          const message = outOfStockItems.map(item => 
+            `${item.name}: Requested ${item.requested}, only ${item.available} available`
+          ).join('\n');
           
-          console.log("Processing invoice for stock updates...");
-          
-          // Process each invoice item and update stock
-          invoice.items.forEach(item => {
-            const productIndex = products.findIndex((p: { id: number }) => p.id === item.id);
-            if (productIndex >= 0) {
-              // Get current stock
-              const currentStock = products[productIndex].stock;
-              
-              // Calculate new stock (don't let it go below 0)
-              const newStock = Math.max(0, currentStock - item.quantity);
-              
-              console.log(`Invoice item: ${item.name} (ID: ${item.id})`);
-              console.log(`  Stock before: ${currentStock}`);
-              console.log(`  Quantity in invoice: ${item.quantity}`);
-              console.log(`  Stock after: ${newStock}`);
-              
-              // Update product stock in both arrays
-              products[productIndex].stock = newStock;
-              stockUpdated = true;
-              
-              // Also update in InvoiceContext
-              updateProductStock(item.id, newStock);
-            } else {
-              console.warn(`Product with ID ${item.id} not found in products array`);
-            }
-          });
-          
-          // Save updated products back to localStorage
-          if (stockUpdated) {
-            localStorage.setItem('products', JSON.stringify(products));
-            console.log("✅ Stock updated in localStorage after invoice confirmation");
-          }
-        } else {
-          console.warn("No products found in localStorage when processing invoice");
+          setIsConfirming(false);
+          setShowConfirmationEffect(false);
+          alert(`Cannot generate invoice due to insufficient stock:\n${message}`);
+          // Optionally redirect or suggest updating the invoice
+          // router.push('/invoices'); 
+          return;
         }
+        console.log("Stock verified successfully.");
       }
+      // --- End Stock Verification ---
+
+      // If stock is sufficient, proceed to update stock using context
+      console.log("Processing invoice for stock updates via context...");
+      invoice.items.forEach(item => {
+        const currentStock = getProductStock(item.id); // Get current stock from context
+        const newStock = Math.max(0, currentStock - item.quantity);
+        
+        console.log(`  Updating stock for ${item.name} (ID: ${item.id}): ${currentStock} -> ${newStock}`);
+        updateProductStock(item.id, newStock); // Update context (persistence handled by context effect)
+      });
+      console.log("✅ Stock updates sent to context.");
       
       // Then proceed with invoice confirmation
       setIsInvoiceGenerated(true);
       
-      // Save to invoice history
+      // Save to invoice history (Keep as is)
       if (invoice.restaurant) {
         saveInvoiceToHistory({
           id: orderId,
@@ -202,7 +162,7 @@ export default function CheckoutPage() {
       // Reset animation states after completion
       setIsConfirming(false);
       setShowConfirmationEffect(false);
-    }, 1700); // Extended from 1200 to 1700 (added 500ms)
+    }, 1700); 
   };
 
   const handleDownloadPDF = () => {

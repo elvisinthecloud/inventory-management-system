@@ -6,6 +6,8 @@ import { Geist } from "next/font/google";
 import CategoryGrid from '../components/CategoryGrid';
 import SearchBar from '../components/SearchBar';
 import PageHeader from '@/app/components/PageHeader';
+import { Product } from '../context/InvoiceContext';
+import { baseProducts } from '../../data/defaultProducts';
 
 // Apply Geist font
 const geistSans = Geist({
@@ -18,15 +20,6 @@ interface Category {
   id: number;
   name: string;
   image: string;
-}
-
-interface Product {
-  id: number;
-  name: string;
-  category: string;
-  categoryId?: number;
-  price: number;
-  stock: number;
 }
 
 // Default categories if localStorage data is not available
@@ -53,119 +46,106 @@ const DEFAULT_CATEGORY_MAP: Record<string, number> = {
   'Especias': 8
 };
 
+// Helper function to derive categories from products
+const deriveCategoriesFromProducts = (products: Product[]): Category[] => {
+  console.log('Deriving categories from:', products.length, 'products');
+  const uniqueCategories: Category[] = [];
+  const categoryNames = new Set<string>();
+  const categoryMap = new Map<string, { id: number, name: string }>();
+  const usedCategoryIds = new Set<number>();
+
+  // Add predefined category IDs
+  Object.values(DEFAULT_CATEGORY_MAP).forEach(id => usedCategoryIds.add(id));
+
+  // Process categories from products
+  products.forEach((product: Product) => {
+    if (product.category && !categoryNames.has(product.category)) {
+      categoryNames.add(product.category);
+      let categoryId: number | undefined;
+      if (DEFAULT_CATEGORY_MAP[product.category] !== undefined) {
+        categoryId = DEFAULT_CATEGORY_MAP[product.category];
+      } else {
+        // Generate a new ID if not predefined
+        let newId = Math.max(8, ...usedCategoryIds) + 1; // Start from 9 or max used + 1
+        while (usedCategoryIds.has(newId)) {
+          newId++;
+        }
+        categoryId = newId;
+      }
+      // Ensure categoryId is defined before using it
+      if (categoryId !== undefined) {
+         usedCategoryIds.add(categoryId);
+         categoryMap.set(product.category, { id: categoryId, name: product.category });
+      }
+    }
+  });
+
+  // Create final category objects with images
+  categoryNames.forEach(categoryName => {
+    const categoryInfo = categoryMap.get(categoryName);
+    if (!categoryInfo) return;
+
+    const defaultCat = defaultCategories.find(c => c.name === categoryName);
+    uniqueCategories.push({
+      id: categoryInfo.id,
+      name: categoryName,
+      image: defaultCat ? defaultCat.image : '/images/categories/default.jpg'
+    });
+  });
+
+  console.log('Derived categories:', uniqueCategories.map(c => ({ id: c.id, name: c.name })));
+  return uniqueCategories;
+};
+
 export default function SearchPage() {
-  const [categories, setCategories] = useState<Category[]>(defaultCategories);
+  const [categories, setCategories] = useState<Category[]>([]);
   const { } = useInvoice();
   
-  // Load categories from localStorage products
   useEffect(() => {
-    console.log('SearchPage: useEffect started'); // Log start
+    console.log('SearchPage: useEffect started');
     try {
-      console.log('Loading categories from localStorage');
       const productsJson = localStorage.getItem('products');
-      
+      let productsToUse: Product[];
+
       if (productsJson) {
-        const products = JSON.parse(productsJson) as Product[];
-        console.log('Products loaded:', products.length);
-        
-        // --- Start of complex category logic ---
-        const uniqueCategories: Category[] = [];
-        const categoryNames = new Set<string>();
-        const categoryMap = new Map<string, { id: number, name: string }>();
-        
-        const usedCategoryIds = new Set<number>();
-        Object.values(DEFAULT_CATEGORY_MAP).forEach(id => {
-          usedCategoryIds.add(id);
-        });
-        
-        products.forEach((product: Product) => {
-          if (product.category && !categoryNames.has(product.category)) {
-            categoryNames.add(product.category);
-            if (DEFAULT_CATEGORY_MAP[product.category] !== undefined) {
-              const categoryId = DEFAULT_CATEGORY_MAP[product.category];
-              usedCategoryIds.add(categoryId);
-              categoryMap.set(product.category, {
-                id: categoryId,
-                name: product.category,
-              });
-            } 
-            else if (product.categoryId) {
-              usedCategoryIds.add(product.categoryId);
-              categoryMap.set(product.category, {
-                id: product.categoryId,
-                name: product.category,
-              });
-            }
-          }
-        });
-        
-        products.forEach((product: Product) => {
-          if (product.category && !categoryMap.has(product.category)) {
-            let newId = Object.keys(DEFAULT_CATEGORY_MAP).length + 1;
-            while (usedCategoryIds.has(newId)) {
-              newId++;
-            }
-            usedCategoryIds.add(newId);
-            categoryMap.set(product.category, {
-              id: newId,
-              name: product.category,
-            });
-          }
-        });
-        
-        categoryNames.forEach(categoryName => {
-          const category = categoryMap.get(categoryName);
-          if (!category) return;
-          const existingCategory = defaultCategories.find(c => c.name === categoryName);
-          uniqueCategories.push({
-            id: category.id,
-            name: categoryName,
-            image: existingCategory ? existingCategory.image : '/images/categories/default.jpg'
-          });
-        });
-        // --- End of complex category logic ---
-        
-        console.log('Final categories derived:', uniqueCategories.map(c => ({ id: c.id, name: c.name })));
-        
-        const categoryIds = uniqueCategories.map(c => c.id);
-        const hasDuplicateIds = categoryIds.length !== new Set(categoryIds).size;
-        if (hasDuplicateIds) {
-          console.warn('WARNING: Duplicate category IDs before setting state:', 
-            categoryIds.filter((id, index) => categoryIds.indexOf(id) !== index));
-          
-          const seenIds = new Set<number>();
-          const dedupedCategories = uniqueCategories.map(category => {
-            if (seenIds.has(category.id)) {
-              return { ...category, id: category.id + 10000 };
-            }
-            seenIds.add(category.id);
-            return category;
-          });
-          
-          setCategories(dedupedCategories);
-          console.log('SearchPage: Categories state updated (with deduplication).');
-        } else if (uniqueCategories.length > 0) {
-          setCategories(uniqueCategories);
-          console.log('SearchPage: Categories state updated.');
-        } else {
-          // Fallback if no unique categories derived but products existed
-          setCategories(defaultCategories);
-          console.log('SearchPage: Categories state set to default (no unique derived).');
-        }
+        console.log('Loading products from localStorage');
+        productsToUse = JSON.parse(productsJson) as Product[];
       } else {
-        // No products in localStorage, use default
-        setCategories(defaultCategories);
-        console.log('SearchPage: No products in localStorage, Categories state set to default.');
+        console.log('No products in localStorage, using default baseProducts');
+        productsToUse = baseProducts;
       }
-      console.log('SearchPage: useEffect finished successfully.'); // Log success
+
+      const derivedCategories = deriveCategoriesFromProducts(productsToUse);
+
+      // Check for duplicate IDs (optional but good practice)
+      const categoryIds = derivedCategories.map(c => c.id);
+      const hasDuplicateIds = categoryIds.length !== new Set(categoryIds).size;
+      if (hasDuplicateIds) {
+        console.warn('WARNING: Duplicate category IDs detected:', 
+          categoryIds.filter((id, index) => categoryIds.indexOf(id) !== index));
+        // Simple deduplication by adding offset - adjust if needed
+        const seenIds = new Set<number>();
+        const dedupedCategories = derivedCategories.map(category => {
+          if (seenIds.has(category.id)) {
+            return { ...category, id: category.id + Date.now() }; // Make ID unique
+          }
+          seenIds.add(category.id);
+          return category;
+        });
+        setCategories(dedupedCategories);
+        console.log('SearchPage: Categories state updated (with deduplication).');
+      } else {
+        setCategories(derivedCategories);
+        console.log('SearchPage: Categories state updated.');
+      }
+
+      console.log('SearchPage: useEffect finished successfully.');
     } catch (error) {
-      // Catch and log any error during the process
       console.error('SearchPage: Error in useEffect while processing categories:', error);
-      // Fallback to default categories in case of error
-      setCategories(defaultCategories);
-      console.log('SearchPage: Categories state set to default due to error.');
+      setCategories([]); // Set empty on error
+      console.log('SearchPage: Categories state set to empty array due to error.');
     }
-  }, []); // Dependency array is empty, runs once on mount
+  }, []);
 
   return (
     <div className={`flex flex-col min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 ${geistSans.className}`}>
