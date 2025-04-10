@@ -23,11 +23,7 @@ export default function PageHeader({ title, withAction, fullWidth = false }: Pag
             </h1>
           </div>
           
-          {withAction && (
-            <div className="sm:ml-4 text-gray-700">
-              {withAction}
-            </div>
-          )}
+          {withAction}
         </div>
       </div>
     </div>
