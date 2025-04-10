@@ -7,7 +7,7 @@ import Link from 'next/link';
 import ProductCard from '@/app/components/ProductCard';
 import { useInvoice, Product } from '@/app/context/InvoiceContext';
 import { baseProducts as sharedBaseProducts } from '@/data/defaultProducts';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 const robotoMono = Roboto_Mono({
   weight: '700',
@@ -15,7 +15,6 @@ const robotoMono = Roboto_Mono({
 });
 
 export default function CategoryPage() {
-  const params = useParams();
   const searchParams = useSearchParams();
   const categoryName = searchParams?.get('name') || 'Category';
   const { getProductStock } = useInvoice();
