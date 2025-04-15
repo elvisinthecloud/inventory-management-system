@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { executeQuery, sql } from '@/lib/db'; // Assuming db utility is in src/lib
 
+// Add the RouteContext interface back
 interface RouteContext {
   params: {
     categoryName: string;
@@ -12,8 +13,12 @@ interface RouteContext {
  * URL: /api/products/category/[categoryName]
  * Example: /api/products/category/Chiles
  */
-export async function GET(request: Request, context: RouteContext) {
-  // Extract the category name from the route parameters
+// Revert function signature to use context object
+export async function GET(
+    request: Request,
+    context: RouteContext // Use the interface here
+) {
+  // Extract the category name from the context object
   const { categoryName } = context.params;
 
   // Decode the category name in case it contains URL-encoded characters (e.g., %20 for space)
