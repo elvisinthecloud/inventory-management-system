@@ -1,22 +1,15 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/db'; // Assuming db utility is in src/lib
 
-// Add the RouteContext interface back
-interface RouteContext {
-  params: {
-    categoryName: string;
-  };
-}
-
 /**
  * Handles GET requests to fetch products by category name.
  * URL: /api/products/category/[categoryName]
  * Example: /api/products/category/Chiles
  */
-// Revert function signature to use context object
 export async function GET(
-    request: Request,
-    context: RouteContext // Use the interface here
+    _request: Request, // Renamed to _request as it's unused
+    // Define the context shape inline for App Router
+    context: { params: { categoryName: string } }
 ) {
   // Extract the category name from the context object
   const { categoryName } = context.params;
