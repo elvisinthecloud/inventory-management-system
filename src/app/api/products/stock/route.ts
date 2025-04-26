@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getConnectionPool, sql } from '@/lib/db';
-import { ConnectionPool, Transaction } from 'mssql';
+import { ConnectionPool, Transaction, Request as SqlRequest } from 'mssql';
 
 // Define the expected structure for items in the request body
 interface StockUpdateItem {

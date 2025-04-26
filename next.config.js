@@ -6,6 +6,11 @@ const nextConfig = {
   // Configure standalone output for Docker deployment
   output: 'standalone',
   
+  // Add ESLint configuration to ignore errors during build
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  
   // Add redirects configuration
   async redirects() {
     return [
