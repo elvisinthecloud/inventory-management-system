@@ -5,6 +5,7 @@ import { executeQuery } from '@/lib/db'; // Assuming db utility is in src/lib
  * Handles GET requests to fetch all products.
  * URL: /api/products
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(_request: Request) {
   try {
     // Define the SQL query to select all products, ordered by category then name
