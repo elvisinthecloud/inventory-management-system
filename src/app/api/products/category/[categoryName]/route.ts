@@ -1,25 +1,18 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/db'; // Assuming db utility is in src/lib
 
-// Add the RouteContext interface back
-interface RouteContext {
-  params: {
-    categoryName: string;
-  };
-}
-
 /**
  * Handles GET requests to fetch products by category name.
  * URL: /api/products/category/[categoryName]
  * Example: /api/products/category/Chiles
  */
-// Revert function signature to use context object
+// Use the correct Next.js type for dynamic route parameters
 export async function GET(
     request: Request,
-    context: RouteContext // Use the interface here
+    { params }: { params: { categoryName: string } }
 ) {
-  // Extract the category name from the context object
-  const { categoryName } = context.params;
+  // Extract the category name from the params object
+  const { categoryName } = params;
 
   // Decode the category name in case it contains URL-encoded characters (e.g., %20 for space)
   const decodedCategoryName = decodeURIComponent(categoryName);
