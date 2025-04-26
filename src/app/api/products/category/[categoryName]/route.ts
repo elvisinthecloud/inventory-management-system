@@ -9,10 +9,10 @@ import { executeQuery } from '@/lib/db'; // Assuming db utility is in src/lib
 // Use the correct Next.js type for dynamic route parameters
 export async function GET(
     request: Request,
-    { params }: { params: { categoryName: string } }
+    context: { params: { categoryName: string } } // Define context with the required inline type
 ) {
-  // Extract the category name from the params object
-  const { categoryName } = params;
+  // Access categoryName through the context object
+  const { categoryName } = context.params;
 
   // Decode the category name in case it contains URL-encoded characters (e.g., %20 for space)
   const decodedCategoryName = decodeURIComponent(categoryName);
