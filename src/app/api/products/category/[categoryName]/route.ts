@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { executeQuery, sql } from '@/lib/db'; // Assuming db utility is in src/lib
+import { executeQuery } from '@/lib/db'; // Assuming db utility is in src/lib
 
 // Add the RouteContext interface back
 interface RouteContext {

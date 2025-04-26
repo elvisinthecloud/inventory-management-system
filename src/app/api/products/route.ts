@@ -5,7 +5,7 @@ import { executeQuery } from '@/lib/db'; // Assuming db utility is in src/lib
  * Handles GET requests to fetch all products.
  * URL: /api/products
  */
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     // Define the SQL query to select all products, ordered by category then name
     const query = `

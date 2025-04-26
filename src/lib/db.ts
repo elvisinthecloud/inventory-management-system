@@ -12,22 +12,6 @@ if (!connectionString) {
   // throw new Error('Azure SQL connection string is not defined in environment variables (AZURE_SQL_CONNECTION_STRING)');
 }
 
-// Configuration object passed to mssql.connect
-const config = {
-  connectionString: connectionString,
-  pool: {
-    max: 10, // Max number of connections in the pool
-    min: 0,  // Min number of connections to keep open
-    idleTimeoutMillis: 30000 // Close idle connections after 30 seconds
-  },
-  options: {
-    encrypt: true, // Required for Azure SQL
-    trustServerCertificate: false // Recommended for security (use default validation)
-    // You might need to set this to true if you're using a self-signed certificate locally
-    // or if you encounter SSL certificate validation issues.
-  }
-};
-
 // Global variable for the connection pool promise.
 // This ensures we only initialize the pool once.
 let poolPromise: Promise<ConnectionPool> | null = null;
@@ -83,7 +67,7 @@ export { sql };
 
 // Example helper function to execute a query using the pool
 // This simplifies query execution in API routes.
-export async function executeQuery(query: string, params?: { [key: string]: any }): Promise<sql.IResult<any>> {
+export async function executeQuery(query: string, params?: { [key: string]: unknown }): Promise<sql.IResult<unknown>> {
     try {
         const pool = await getConnectionPool();
         const request = pool.request();
