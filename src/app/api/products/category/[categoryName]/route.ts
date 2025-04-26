@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/db'; // Assuming db utility is in src/lib
 
 /**
@@ -8,7 +8,7 @@ import { executeQuery } from '@/lib/db'; // Assuming db utility is in src/lib
  */
 // Use the correct Next.js type for dynamic route parameters
 export async function GET(
-    request: Request,
+    request: NextRequest,
     context: { params: { categoryName: string } } // Define context with the required inline type
 ) {
   // Access categoryName through the context object
